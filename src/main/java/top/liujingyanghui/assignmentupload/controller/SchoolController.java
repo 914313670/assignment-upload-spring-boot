@@ -4,10 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import top.liujingyanghui.assignmentupload.entity.City;
 import top.liujingyanghui.assignmentupload.entity.School;
 import top.liujingyanghui.assignmentupload.service.CityService;
@@ -33,6 +30,7 @@ public class SchoolController {
 
     /**
      * 分页获取学校信息
+     *
      * @param provinceId
      * @param cityId
      * @param current
@@ -45,14 +43,22 @@ public class SchoolController {
         IPage<School> page = null;
         if (-1 == provinceId && -1 == cityId) {
             // 省份全选
-            page = schoolService.page(schoolPage,Wrappers.<School>lambdaQuery().eq(School::getDelFlag,0).eq(School::getVerifyFlag,1));
+            page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().eq(School::getDelFlag, 0).eq(School::getVerifyFlag, 1));
         } else if (-1 == cityId) {
             List<City> cityList = cityService.list(Wrappers.<City>lambdaQuery().eq(City::getProvinceId, provinceId));
             Set<Integer> ids = cityList.stream().map(item -> item.getId()).collect(Collectors.toSet());
-            page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().in(School::getCityId, ids).eq(School::getDelFlag,0).eq(School::getVerifyFlag,1));
+            page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().in(School::getCityId, ids).eq(School::getDelFlag, 0).eq(School::getVerifyFlag, 1));
         } else {
-            page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().eq(School::getCityId, cityId).eq(School::getDelFlag,0).eq(School::getVerifyFlag,1));
+            page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().eq(School::getCityId, cityId).eq(School::getDelFlag, 0).eq(School::getVerifyFlag, 1));
         }
         return Result.success(page);
+    }
+
+    @PutMapping("")
+    public Result update(@RequestBody School school) {
+        School one = new School();
+        one.setId(school.getId());
+        one.setName(school.getName());
+        return schoolService.updateById(one) ? Result.success("更新成功") : Result.error("更新失败");
     }
 }
