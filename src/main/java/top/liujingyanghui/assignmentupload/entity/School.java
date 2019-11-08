@@ -16,6 +16,16 @@ public class School {
     private String name;
 
     /**
+     * 是否删除（0：否，1：是）
+     */
+    private Integer delFlag;
+
+    /**
+     * 是否审核（0：否，1：是）
+     */
+    private Integer verifyFlag;
+
+    /**
      * 城市Id
      */
     private Integer cityId;
