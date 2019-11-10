@@ -57,7 +57,7 @@ public class Result {
     }
 
     public static  Result error(Object data) {
-        return new Result(ResultEnum.ERROR.getStatus(), ResultEnum.ERROR.getMessage(), data);
+        return new Result(ResultEnum.ERROR.getStatus(), data.toString());
     }
 
     public static  Result error(String message, Object data) {
