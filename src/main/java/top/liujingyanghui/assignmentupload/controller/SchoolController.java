@@ -29,6 +29,11 @@ public class SchoolController {
     @Autowired
     private SchoolService schoolService;
 
+    @GetMapping("list")
+    public Result list() {
+        return Result.success(schoolService.list(Wrappers.<School>lambdaQuery().select(School::getId, School::getName).eq(School::getDelFlag, 0).eq(School::getVerifyFlag, 1)));
+    }
+
     /**
      * 分页获取学校信息
      *
