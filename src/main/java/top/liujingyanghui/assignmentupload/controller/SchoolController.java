@@ -31,7 +31,18 @@ public class SchoolController {
 
     @GetMapping("list")
     public Result list() {
-        return Result.success(schoolService.list(Wrappers.<School>lambdaQuery().select(School::getId, School::getName).eq(School::getDelFlag, 0).eq(School::getVerifyFlag, 1)));
+//        List<Province> pList = provinceService.list();
+//        List<City> cList = cityService.list();
+//        List<School> sList = schoolService.list(Wrappers.<School>lambdaQuery().select(School::getId, School::getName,
+//                School::getCityId).eq(School::getDelFlag, 0).eq(School::getVerifyFlag, 1));
+//        ArrayList<SchoolCascaderVo> list = new ArrayList<>();
+//        for (Province pItem : pList) {
+//            SchoolCascaderVo schoolCascaderVo = new SchoolCascaderVo();
+//            schoolCascaderVo.setId(pItem.getId());
+//            schoolCascaderVo.setName(pItem.getName());
+//        }
+        return Result.success(schoolService.list(Wrappers.<School>lambdaQuery().select(School::getId, School::getName,
+                School::getCityId).eq(School::getDelFlag, 0).eq(School::getVerifyFlag, 1)));
     }
 
     /**
