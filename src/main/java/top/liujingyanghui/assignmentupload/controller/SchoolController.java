@@ -1,6 +1,7 @@
 package top.liujingyanghui.assignmentupload.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,18 +30,33 @@ public class SchoolController {
     @Autowired
     private SchoolService schoolService;
 
+    /**
+     * 添加学校
+     *
+     * @param school 学校实体（名字和城市id必须传）
+     * @return
+     */
+    @PostMapping("add")
+    public Result add(@RequestBody School school) {
+        if (StringUtils.isEmpty(school.getName()) || school.getCityId() == null) {
+            return Result.error(ResultEnum.INPUT_IS_NULL);
+        }
+        List<School> list = schoolService.list(Wrappers.<School>lambdaQuery().eq(School::getName, school.getName()));
+        if (!list.isEmpty()) {
+            return Result.error(ResultEnum.SCHOOL_IS_EXIST);
+        }
+        school.setDelFlag(0);
+        school.setVerifyFlag(1);
+        return schoolService.save(school) ? Result.success() : Result.error("添加失败");
+    }
+
+    /**
+     * 获取学校列表
+     *
+     * @return
+     */
     @GetMapping("list")
     public Result list() {
-//        List<Province> pList = provinceService.list();
-//        List<City> cList = cityService.list();
-//        List<School> sList = schoolService.list(Wrappers.<School>lambdaQuery().select(School::getId, School::getName,
-//                School::getCityId).eq(School::getDelFlag, 0).eq(School::getVerifyFlag, 1));
-//        ArrayList<SchoolCascaderVo> list = new ArrayList<>();
-//        for (Province pItem : pList) {
-//            SchoolCascaderVo schoolCascaderVo = new SchoolCascaderVo();
-//            schoolCascaderVo.setId(pItem.getId());
-//            schoolCascaderVo.setName(pItem.getName());
-//        }
         return Result.success(schoolService.list(Wrappers.<School>lambdaQuery().select(School::getId, School::getName,
                 School::getCityId).eq(School::getDelFlag, 0).eq(School::getVerifyFlag, 1)));
     }
@@ -48,10 +64,10 @@ public class SchoolController {
     /**
      * 分页获取学校信息
      *
-     * @param provinceId
-     * @param cityId
-     * @param current
-     * @param size
+     * @param provinceId 省份id
+     * @param cityId     城市id
+     * @param current    当前页
+     * @param size       每页大小
      * @return
      */
     @GetMapping("page")
