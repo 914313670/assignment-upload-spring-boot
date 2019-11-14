@@ -1,10 +1,13 @@
 package top.liujingyanghui.assignmentupload.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 
 @Data
 @TableName(value = "class")
@@ -28,16 +31,25 @@ public class Class {
     private String name;
 
     /**
+     * 班级人数
+     */
+    private Integer number;
+
+    /**
      * 学校ID
      */
     @TableField(value = "school_id")
     private Integer schoolId;
 
-    public static final String COL_ID = "id";
+    /**
+     * 创建人ID
+     */
+    private Integer userId;
 
-    public static final String COL_GRADE = "grade";
+    /**
+     * 创建时间
+     */
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createTime;
 
-    public static final String COL_NAME = "name";
-
-    public static final String COL_SCHOOL_ID = "school_id";
 }

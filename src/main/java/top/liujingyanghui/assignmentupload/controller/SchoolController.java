@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import top.liujingyanghui.assignmentupload.entity.City;
 import top.liujingyanghui.assignmentupload.entity.School;
@@ -71,6 +72,7 @@ public class SchoolController {
      * @return
      */
     @GetMapping("page")
+    @PreAuthorize("hasRole('ADMIN')")
     public Result page(@RequestParam int provinceId, @RequestParam int cityId, @RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size,
                        @RequestParam String searchKey) {
         Page<School> schoolPage = new Page<>(current, size);
@@ -101,6 +103,7 @@ public class SchoolController {
      * @return
      */
     @PutMapping("update")
+    @PreAuthorize("hasRole('ADMIN')")
     public Result update(@RequestBody School school) {
         School one = new School();
         one.setId(school.getId());
@@ -115,6 +118,7 @@ public class SchoolController {
      * @return
      */
     @DeleteMapping("delete")
+    @PreAuthorize("hasRole('ADMIN')")
     public Result delete(@RequestParam int id) {
 
         // 待加入判读是否删除
@@ -133,6 +137,7 @@ public class SchoolController {
      * @return
      */
     @DeleteMapping("deletes")
+    @PreAuthorize("hasRole('ADMIN')")
     public Result deletes(@RequestParam String[] ids) {
         boolean update = schoolService.update(Wrappers.<School>lambdaUpdate().in(School::getId, ids).set(School::getDelFlag, 1));
         return update ? Result.success() : Result.error();
