@@ -44,7 +44,12 @@ public class Class {
     /**
      * 创建人ID
      */
-    private Integer userId;
+    private Long userId;
+
+    /**
+     * 创建人姓名
+     */
+    private String userName;
 
     /**
      * 创建时间

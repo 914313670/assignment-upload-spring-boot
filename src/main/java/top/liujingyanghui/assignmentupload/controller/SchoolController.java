@@ -120,7 +120,10 @@ public class SchoolController {
     @DeleteMapping("delete")
     @PreAuthorize("hasRole('ADMIN')")
     public Result delete(@RequestParam int id) {
-
+        // 判断是否初始学校
+        if (id <= 2217) {
+            return Result.error("该学校禁止删除");
+        }
         // 待加入判读是否删除
 
 
@@ -139,6 +142,11 @@ public class SchoolController {
     @DeleteMapping("deletes")
     @PreAuthorize("hasRole('ADMIN')")
     public Result deletes(@RequestParam String[] ids) {
+        for (String id : ids) {
+            if (Integer.parseInt(id) <= 2217) {
+                return Result.error("所选学校包含禁止删除学校");
+            }
+        }
         boolean update = schoolService.update(Wrappers.<School>lambdaUpdate().in(School::getId, ids).set(School::getDelFlag, 1));
         return update ? Result.success() : Result.error();
     }

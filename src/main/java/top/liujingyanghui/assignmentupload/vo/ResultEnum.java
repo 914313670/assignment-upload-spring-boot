@@ -14,7 +14,8 @@ public enum ResultEnum {
 
     USER_IS_EXIST(2,"用户已存在"),
     SCHOOL_IS_EXIST(3,"该学校已存在"),
-    INPUT_IS_NULL(4,"输入的值为空")
+    INPUT_IS_NULL(4,"输入的值为空"),
+    CLASS_IS_EXIST(5,"该学校已存在"),
     ;
     private int status;
     private String message;

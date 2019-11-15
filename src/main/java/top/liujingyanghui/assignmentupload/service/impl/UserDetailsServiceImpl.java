@@ -3,7 +3,6 @@ package top.liujingyanghui.assignmentupload.service.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -85,7 +84,7 @@ public class UserDetailsServiceImpl extends ServiceImpl<UserMapper, User> implem
         tokenMap.put("email", jwtUser.getUsername());
         tokenMap.put("role", jwtUser.getRole());
         LoginVo loginVo = new LoginVo();
-        loginVo.setToken(JwtUtil.setClaim(tokenMap, email));
+        loginVo.setToken(JwtUtil.setClaim(tokenMap, Long.toString(jwtUser.getId())));
         loginVo.setName(jwtUser.getName());
         loginVo.setRole(jwtUser.getRole());
         return loginVo;
