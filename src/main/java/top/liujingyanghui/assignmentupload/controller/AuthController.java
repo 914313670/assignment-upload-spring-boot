@@ -9,6 +9,9 @@ import top.liujingyanghui.assignmentupload.entity.User;
 import top.liujingyanghui.assignmentupload.service.UserService;
 import top.liujingyanghui.assignmentupload.vo.Result;
 
+/**
+ * 认证控制器
+ */
 @RestController
 @RequestMapping("api")
 public class AuthController {

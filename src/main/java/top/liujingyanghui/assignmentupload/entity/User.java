@@ -34,9 +34,19 @@ public class User {
     private String name;
 
     /**
-     *  用户详细信息ID
+     * 学号/工号
      */
-    private Long infoId;
+    private String number;
+
+    /**
+     * 班级ID
+     */
+    private Long classId;
+
+    /**
+     * 学校ID
+     */
+    private Integer schoolId;
 
     /**
      * 注册时间
