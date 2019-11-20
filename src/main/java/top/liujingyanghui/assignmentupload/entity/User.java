@@ -1,6 +1,5 @@
 package top.liujingyanghui.assignmentupload.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -51,12 +50,10 @@ public class User {
     /**
      * 注册时间
      */
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
 
     /**
      * 最后登录时间
      */
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastLoginTime;
 }
