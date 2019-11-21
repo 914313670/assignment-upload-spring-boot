@@ -156,4 +156,16 @@ public class ClassController {
         boolean delete = classService.removeByIds(ids);
         return delete ? Result.success() : Result.error();
     }
+
+    /**
+     * 根据学校id获取班级
+     * @param schoolId 学校id
+     * @return
+     */
+    @GetMapping("getBySchool")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Result getBySchool(@RequestParam int schoolId){
+        List<Class> list = classService.list(Wrappers.<Class>lambdaQuery().select(Class::getName, Class::getId).eq(Class::getSchoolId, schoolId));
+        return Result.success(list);
+    }
 }
