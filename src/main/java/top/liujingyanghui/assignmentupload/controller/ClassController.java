@@ -94,7 +94,7 @@ public class ClassController {
     public Result page(@RequestParam int schoolId, @RequestParam int grade, @RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size,
                        @RequestParam String nameKey) {
         Page<Class> classPage = new Page<>(current, size);
-        IPage<Class> page = null;
+        IPage<Class> page;
         if (-1 == grade) {
             page = classService.page(classPage, Wrappers.<Class>lambdaQuery().eq(Class::getSchoolId, schoolId).like(Class::getName, nameKey));
         } else {
