@@ -84,7 +84,12 @@ public class UserDetailsServiceImpl extends ServiceImpl<UserMapper, User> implem
         tokenMap.put("email", jwtUser.getUsername());
         tokenMap.put("role", jwtUser.getRole());
         LoginVo loginVo = new LoginVo();
-        loginVo.setToken(JwtUtil.setClaim(tokenMap, Long.toString(jwtUser.getId())));
+
+        long startTime=System.currentTimeMillis();
+        loginVo.setToken(JwtUtil.setClaim(tokenMap, email));
+        long endTime=System.currentTimeMillis(); //获取结束时间
+        System.out.println("程序运行时间： "+(endTime-startTime)+"ms");
+
         loginVo.setName(jwtUser.getName());
         loginVo.setRole(jwtUser.getRole());
         return loginVo;
