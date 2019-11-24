@@ -154,7 +154,7 @@ public class ClassController {
 
 
         boolean delete = classService.removeByIds(ids);
-        return delete ? Result.success() : Result.error();
+        return delete ? Result.success() : Result.error("删除失败");
     }
 
     /**

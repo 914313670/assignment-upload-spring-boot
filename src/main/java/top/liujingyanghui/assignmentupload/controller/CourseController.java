@@ -7,10 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import top.liujingyanghui.assignmentupload.entity.Class;
 import top.liujingyanghui.assignmentupload.entity.Course;
 import top.liujingyanghui.assignmentupload.entity.User;
@@ -78,5 +75,50 @@ public class CourseController {
         }
         pageVo.setRecords(list);
         return Result.success(pageVo);
+    }
+
+    /**
+     * 修改课程名
+     * @param course
+     * @return
+     */
+    @PutMapping("update")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Result update(@RequestBody Course course){
+        boolean update = courseService.update(Wrappers.<Course>lambdaUpdate().eq(Course::getId, course.getId()).set(Course::getName, course.getName()));
+        return update?Result.success():Result.error("修改失败");
+    }
+
+    /**
+     * 删除课程
+     * @param id
+     * @return
+     */
+    @DeleteMapping("delete")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Result delete(@RequestParam Long id){
+
+
+
+
+        boolean del = courseService.removeById(id);
+        return del?Result.success():Result.error("删除失败");
+    }
+
+
+    /**
+     * 多选删除
+     *
+     * @param ids
+     * @return
+     */
+    @DeleteMapping("deletes")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Result deletes(@RequestParam List<String> ids) {
+        // 预留是否删除
+
+
+        boolean delete = courseService.removeByIds(ids);
+        return delete ? Result.success() : Result.error("删除失败");
     }
 }
