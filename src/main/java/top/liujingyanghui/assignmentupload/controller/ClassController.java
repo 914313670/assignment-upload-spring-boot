@@ -109,7 +109,7 @@ public class ClassController {
      * @return
      */
     @PutMapping("update")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
     public Result update(@RequestBody Class clazz) {
         Calendar cal = Calendar.getInstance();
         int year = cal.get(Calendar.YEAR);
