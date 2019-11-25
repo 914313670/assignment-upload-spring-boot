@@ -3,6 +3,7 @@ package top.liujingyanghui.assignmentupload.service.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -44,8 +45,7 @@ public class UserDetailsServiceImpl extends ServiceImpl<UserMapper, User> implem
             log.info(email + "该用户不存在");
             throw new UsernameNotFoundException("用户名不存在");
         }
-        return new JwtUser(user.getId(), user.getEmail(), user.getPassword(), user.getRole(),
-                Collections.singleton(new SimpleGrantedAuthority(user.getRole())),user.getName());
+        return new JwtUser(user, Collections.singleton(new SimpleGrantedAuthority(user.getRole())));
     }
 
     @Override
@@ -84,9 +84,8 @@ public class UserDetailsServiceImpl extends ServiceImpl<UserMapper, User> implem
         tokenMap.put("email", jwtUser.getUsername());
         tokenMap.put("role", jwtUser.getRole());
         LoginVo loginVo = new LoginVo();
-        loginVo.setToken(JwtUtil.setClaim(tokenMap, email));
-        loginVo.setName(jwtUser.getName());
-        loginVo.setRole(jwtUser.getRole());
+        loginVo.setToken(JwtUtil.setClaim(tokenMap, Long.toString(jwtUser.getId())));
+        BeanUtils.copyProperties(jwtUser,loginVo);
         return loginVo;
     }
 }

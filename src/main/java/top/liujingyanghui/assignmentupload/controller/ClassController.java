@@ -4,10 +4,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import top.liujingyanghui.assignmentupload.config.TokenConfig;
 import top.liujingyanghui.assignmentupload.entity.Class;
 import top.liujingyanghui.assignmentupload.entity.User;
 import top.liujingyanghui.assignmentupload.service.ClassService;
@@ -19,6 +20,7 @@ import top.liujingyanghui.assignmentupload.vo.ResultEnum;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -28,11 +30,8 @@ import java.util.List;
 @RequestMapping("api/class")
 public class ClassController {
 
-    @Value("${jwt.header}")
-    private String tokenHeader;
-
-    @Value("${jwt.tokenHead}")
-    private String tokenHead;
+    @Autowired
+    private TokenConfig tokenConfig;
 
     @Autowired
     private ClassService classService;
@@ -47,7 +46,7 @@ public class ClassController {
      * @return
      */
     @PostMapping("add")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
     public Result add(HttpServletRequest request, @RequestBody Class clazz) {
         if (StringUtils.isEmpty(clazz.getName()) || clazz.getGrade() == null || clazz.getSchoolId() == null) {
             return Result.error(ResultEnum.INPUT_IS_NULL);
@@ -57,8 +56,7 @@ public class ClassController {
         if (!list.isEmpty()) {
             return Result.error(ResultEnum.CLASS_IS_EXIST);
         }
-        Long id = JwtUtil.getSubject(request.getHeader(tokenHeader).substring(tokenHead.length()));
-        System.out.println(id);
+        Long id = JwtUtil.getSubject(request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length()));
         User user = userService.getById(id);
         clazz.setCreateTime(LocalDateTime.now());
         clazz.setUserId(id);
@@ -90,7 +88,7 @@ public class ClassController {
      * @return
      */
     @GetMapping("page")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
     public Result page(@RequestParam int schoolId, @RequestParam int grade, @RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size,
                        @RequestParam String nameKey) {
         Page<Class> classPage = new Page<>(current, size);
@@ -105,7 +103,7 @@ public class ClassController {
     }
 
     /**
-     * 修改学校名
+     * 修改学校名和年级
      *
      * @param clazz
      * @return
@@ -132,11 +130,23 @@ public class ClassController {
      * @return
      */
     @DeleteMapping("delete")
-    @PreAuthorize("hasRole('ADMIN')")
-    public Result delete(@RequestParam int id) {
-        // 待加入判读是否删除
-
-
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
+    public Result delete(HttpServletRequest request, @RequestParam int id) {
+        Claims claim = JwtUtil.getClaim(request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length()));
+        Long userId = JwtUtil.getSubject(request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length()));
+        System.out.println(userId);
+        String role = claim.get("role").toString();
+        Class clazz = classService.getById(id);
+        if (clazz != null) {
+            if (clazz.getNumber() > 0) {
+                return Result.error("该班级下还有学生不能删除");
+            }
+            if (role.equals("ROLE_TEACHER") && !clazz.getUserId().equals(userId)) {
+                return Result.error("没有相应权限");
+            }
+        } else {
+            return Result.error("删除失败");
+        }
         boolean remove = classService.removeById(id);
         return remove ? Result.success() : Result.error("删除失败");
     }
@@ -148,23 +158,33 @@ public class ClassController {
      * @return
      */
     @DeleteMapping("deletes")
-    @PreAuthorize("hasRole('ADMIN')")
-    public Result deletes(@RequestParam List<String> ids) {
-        // 预留是否删除
-
-
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
+    public Result deletes(HttpServletRequest request,@RequestParam List<String> ids) {
+        Claims claim = JwtUtil.getClaim(request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length()));
+        Long userId = JwtUtil.getSubject(request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length()));
+        String role = claim.get("role").toString();
+        Collection<Class> classes = classService.listByIds(ids);
+        for (Class item : classes) {
+            if (item.getNumber() > 0) {
+                return Result.error("所选班级下还有学生");
+            }
+            if (role.equals("ROLE_TEACHER") && !item.getUserId().equals(userId)) {
+                return Result.error("所选班级没有相应权限");
+            }
+        }
         boolean delete = classService.removeByIds(ids);
         return delete ? Result.success() : Result.error("删除失败");
     }
 
     /**
      * 根据学校id获取班级
+     *
      * @param schoolId 学校id
      * @return
      */
     @GetMapping("getBySchool")
     @PreAuthorize("hasRole('ADMIN')")
-    public Result getBySchool(@RequestParam int schoolId){
+    public Result getBySchool(@RequestParam int schoolId) {
         List<Class> list = classService.list(Wrappers.<Class>lambdaQuery().select(Class::getName, Class::getId).eq(Class::getSchoolId, schoolId));
         return Result.success(list);
     }

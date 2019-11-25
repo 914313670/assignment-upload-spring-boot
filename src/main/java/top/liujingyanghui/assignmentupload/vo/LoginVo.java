@@ -19,6 +19,11 @@ public class LoginVo {
     private String role;
 
     /**
+     * 学校ID
+     */
+    private Integer schoolId;
+
+    /**
      * token
      */
     private String token;

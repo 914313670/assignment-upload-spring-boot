@@ -17,24 +17,23 @@ public class JwtUser implements UserDetails {
     private final String password;
     private final String role;
     private final String name;
-    /** 权限类.*/
+    private Integer schoolId;
+    /**
+     * 权限类.
+     */
     private final Collection<? extends GrantedAuthority> authorities;
 
     /**
      * 在createJwtFactory里注入
      */
-    public JwtUser(long id,
-                   String email,
-                   String password,
-                   String role,
-                   Collection<? extends GrantedAuthority> authorities,
-                   String name) {
-        this.id = id;
-        this.username = email;
-        this.password = password;
-        this.role = role;
+    public JwtUser(User user, Collection<? extends GrantedAuthority> authorities) {
+        this.id = user.getId();
+        this.username = user.getEmail();
+        this.password = user.getPassword();
+        this.role = user.getRole();
         this.authorities = authorities;
-        this.name = name;
+        this.name = user.getName();
+        this.schoolId = user.getSchoolId();
     }
 
     @Override
