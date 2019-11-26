@@ -8,6 +8,8 @@ import lombok.Data;
 @Data
 public class LoginVo {
 
+    private Long id;
+
     /**
      * 姓名
      */

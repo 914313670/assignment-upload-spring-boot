@@ -134,7 +134,6 @@ public class ClassController {
     public Result delete(HttpServletRequest request, @RequestParam int id) {
         Claims claim = JwtUtil.getClaim(request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length()));
         Long userId = JwtUtil.getSubject(request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length()));
-        System.out.println(userId);
         String role = claim.get("role").toString();
         Class clazz = classService.getById(id);
         if (clazz != null) {
@@ -183,7 +182,7 @@ public class ClassController {
      * @return
      */
     @GetMapping("getBySchool")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
     public Result getBySchool(@RequestParam int schoolId) {
         List<Class> list = classService.list(Wrappers.<Class>lambdaQuery().select(Class::getName, Class::getId).eq(Class::getSchoolId, schoolId));
         return Result.success(list);
