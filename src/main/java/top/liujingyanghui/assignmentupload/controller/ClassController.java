@@ -1,5 +1,6 @@
 package top.liujingyanghui.assignmentupload.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -10,8 +11,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import top.liujingyanghui.assignmentupload.config.TokenConfig;
 import top.liujingyanghui.assignmentupload.entity.Class;
+import top.liujingyanghui.assignmentupload.entity.Course;
 import top.liujingyanghui.assignmentupload.entity.User;
 import top.liujingyanghui.assignmentupload.service.ClassService;
+import top.liujingyanghui.assignmentupload.service.CourseService;
 import top.liujingyanghui.assignmentupload.service.UserService;
 import top.liujingyanghui.assignmentupload.utils.JwtUtil;
 import top.liujingyanghui.assignmentupload.vo.Result;
@@ -19,7 +22,6 @@ import top.liujingyanghui.assignmentupload.vo.ResultEnum;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 
@@ -39,6 +41,9 @@ public class ClassController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private CourseService courseService;
+
     /**
      * 添加班级
      *
@@ -48,11 +53,11 @@ public class ClassController {
     @PostMapping("add")
     @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
     public Result add(HttpServletRequest request, @RequestBody Class clazz) {
-        if (StringUtils.isEmpty(clazz.getName()) || clazz.getGrade() == null || clazz.getSchoolId() == null) {
+        if (StringUtils.isEmpty(clazz.getName()) || clazz.getSpecialty() == null || clazz.getSchoolId() == null) {
             return Result.error(ResultEnum.INPUT_IS_NULL);
         }
         List<Class> list = classService.list(Wrappers.<Class>lambdaQuery().eq(Class::getName, clazz.getName()).eq(Class::getSchoolId, clazz.getSchoolId()).
-                eq(Class::getGrade, clazz.getGrade()));
+                eq(Class::getSpecialty, clazz.getSpecialty()));
         if (!list.isEmpty()) {
             return Result.error(ResultEnum.CLASS_IS_EXIST);
         }
@@ -66,39 +71,64 @@ public class ClassController {
     }
 
     /**
-     * 根据学校获取年级列表
+     * 根据学校获取专业列表
      *
      * @return
      */
-    @GetMapping("getGrade")
-    public Result getGrade(@RequestParam int schoolId) {
-        List<Class> list = classService.list(Wrappers.<Class>lambdaQuery().select(Class::getGrade).eq(Class::getSchoolId,
-                schoolId).groupBy(Class::getGrade).orderByDesc(Class::getGrade));
+    @GetMapping("getSpecialty")
+    public Result getSpecialty(@RequestParam int schoolId) {
+        List<Class> list = classService.list(Wrappers.<Class>lambdaQuery().select(Class::getSpecialty).eq(Class::getSchoolId, schoolId).groupBy(Class::getSpecialty));
+        return Result.success(list);
+    }
+
+//    /**
+//     * 根据老师获取班级
+//     *
+//     * @param teacherId
+//     * @return
+//     */
+//    @GetMapping("getByTeacher")
+//    @PreAuthorize("hasRole('TEACHER')")
+//    public Result getByTeacher(@RequestParam int teacherId) {
+//        List<Class> list = classService.list(Wrappers.<Class>lambdaQuery().select(Class::getId, Class::getName).eq(Class::getUserId, teacherId));
+//        return Result.success(list);
+//    }
+
+    /**
+     * 根据专业获取班级
+     *
+     * @return
+     */
+    @GetMapping("getBySpecialty")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Result getBySpecialty(@RequestParam int schoolId, @RequestParam String specialty) {
+        LambdaQueryWrapper<Class> queryWrapper;
+        if (StringUtils.isEmpty(specialty)) {
+            queryWrapper = Wrappers.<Class>lambdaQuery().select(Class::getName, Class::getId).eq(Class::getSchoolId, schoolId);
+        } else {
+            queryWrapper = Wrappers.<Class>lambdaQuery().select(Class::getName, Class::getId).eq(Class::getSchoolId, schoolId).eq(Class::getSpecialty, specialty);
+        }
+        List<Class> list = classService.list(queryWrapper);
         return Result.success(list);
     }
 
     /**
      * 分页筛选查找班级数据
      *
-     * @param schoolId 学校ID
-     * @param grade    年级
-     * @param current  当前页
-     * @param size     每页数量
-     * @param nameKey  班级名称关键字
+     * @param schoolId  学校ID
+     * @param specialty 年级
+     * @param current   当前页
+     * @param size      每页数量
+     * @param nameKey   班级名称关键字
      * @return
      */
     @GetMapping("page")
     @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
-    public Result page(@RequestParam int schoolId, @RequestParam int grade, @RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size,
+    public Result page(@RequestParam int schoolId, @RequestParam String specialty, @RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size,
                        @RequestParam String nameKey) {
         Page<Class> classPage = new Page<>(current, size);
-        IPage<Class> page;
-        if (-1 == grade) {
-            page = classService.page(classPage, Wrappers.<Class>lambdaQuery().eq(Class::getSchoolId, schoolId).like(Class::getName, nameKey));
-        } else {
-            page = classService.page(classPage, Wrappers.<Class>lambdaQuery().eq(Class::getSchoolId, schoolId).eq(Class::getGrade, grade)
-                    .like(Class::getName, nameKey));
-        }
+        IPage<Class> page = classService.page(classPage, Wrappers.<Class>lambdaQuery().eq(Class::getSchoolId, schoolId).like(Class::getSpecialty, specialty)
+                .like(Class::getName, nameKey));
         return Result.success(page);
     }
 
@@ -111,15 +141,15 @@ public class ClassController {
     @PutMapping("update")
     @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
     public Result update(@RequestBody Class clazz) {
-        Calendar cal = Calendar.getInstance();
-        int year = cal.get(Calendar.YEAR);
-        if (year < clazz.getGrade() || clazz.getGrade() < 2000) {
-            return Result.error("年级必须在2000-" + year + "之间");
+        Class one1 = classService.getOne(Wrappers.<Class>lambdaQuery().eq(Class::getName, clazz.getName()).eq(Class::getSpecialty, clazz.getSpecialty()).
+                eq(Class::getSchoolId, clazz.getSchoolId()));
+        if (one1 != null) {
+            return Result.error("该班级名已存在");
         }
         Class one = new Class();
         one.setId(clazz.getId());
         one.setName(clazz.getName());
-        one.setGrade(clazz.getGrade());
+        one.setSpecialty(clazz.getSpecialty());
         return classService.updateById(one) ? Result.success("更新成功") : Result.error("更新失败");
     }
 
@@ -146,6 +176,10 @@ public class ClassController {
         } else {
             return Result.error("删除失败");
         }
+        int count = courseService.count(Wrappers.<Course>lambdaQuery().eq(Course::getClassId, id));
+        if (count > 0) {
+            return Result.error("该班级下含有课程");
+        }
         boolean remove = classService.removeById(id);
         return remove ? Result.success() : Result.error("删除失败");
     }
@@ -158,7 +192,7 @@ public class ClassController {
      */
     @DeleteMapping("deletes")
     @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
-    public Result deletes(HttpServletRequest request,@RequestParam List<String> ids) {
+    public Result deletes(HttpServletRequest request, @RequestParam List<String> ids) {
         Claims claim = JwtUtil.getClaim(request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length()));
         Long userId = JwtUtil.getSubject(request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length()));
         String role = claim.get("role").toString();
@@ -169,6 +203,12 @@ public class ClassController {
             }
             if (role.equals("ROLE_TEACHER") && !item.getUserId().equals(userId)) {
                 return Result.error("所选班级没有相应权限");
+            }
+        }
+        for (String id : ids) {
+            int count = courseService.count(Wrappers.<Course>lambdaQuery().eq(Course::getClassId, id));
+            if (count > 0) {
+                return Result.error("该班级下含有课程");
             }
         }
         boolean delete = classService.removeByIds(ids);

@@ -23,6 +23,11 @@ public class CourseVo {
     private Integer busyworkNum;
 
     /**
+     * 班级id
+     */
+    private Long classId;
+
+    /**
      * 班级名
      */
     private String className;

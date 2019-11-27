@@ -18,10 +18,10 @@ public class Class {
     private Long id;
 
     /**
-     * 年级
+     * 专业
      */
-    @TableField(value = "grade")
-    private Integer grade;
+    @TableField(value = "specialty")
+    private String specialty;
 
     /**
      * 班级名

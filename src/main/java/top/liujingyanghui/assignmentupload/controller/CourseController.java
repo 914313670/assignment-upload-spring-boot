@@ -8,15 +8,20 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import top.liujingyanghui.assignmentupload.config.TokenConfig;
 import top.liujingyanghui.assignmentupload.entity.Class;
 import top.liujingyanghui.assignmentupload.entity.Course;
+import top.liujingyanghui.assignmentupload.entity.User;
 import top.liujingyanghui.assignmentupload.service.ClassService;
 import top.liujingyanghui.assignmentupload.service.CourseService;
 import top.liujingyanghui.assignmentupload.service.UserService;
+import top.liujingyanghui.assignmentupload.utils.JwtUtil;
 import top.liujingyanghui.assignmentupload.vo.CourseVo;
 import top.liujingyanghui.assignmentupload.vo.PageVo;
 import top.liujingyanghui.assignmentupload.vo.Result;
 
+import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -35,6 +40,34 @@ public class CourseController {
     @Autowired
     private CourseService courseService;
 
+    @Autowired
+    private TokenConfig tokenConfig;
+
+    /**
+     * 新增课程
+     *
+     * @param request
+     * @param course
+     * @return
+     */
+    @PostMapping("add")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Result add(HttpServletRequest request, @RequestBody Course course) {
+        Course one = courseService.getOne(Wrappers.<Course>lambdaQuery().eq(Course::getName, course.getName()).eq(Course::getClassId, course.getClassId()));
+        if (one != null) {
+            return Result.error("该课程已存在");
+        }
+        Long id = JwtUtil.getSubject(request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length()));
+        User teacher = userService.getById(id);
+        course.setSchoolId(teacher.getSchoolId());
+        course.setTeacherId(teacher.getId());
+        course.setTeacherName(teacher.getName());
+        course.setBusyworkNum(0);
+        course.setCreateTime(LocalDateTime.now());
+        boolean save = courseService.save(course);
+        return save ? Result.success() : Result.error("新增失败");
+    }
+
     /**
      * 课程分页查询
      *
@@ -49,7 +82,8 @@ public class CourseController {
      */
     @GetMapping("page")
     @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
-    public Result page(@RequestParam int schoolId, @RequestParam int classId, @RequestParam(required = false) String teacherName, @RequestParam(required = false) Long teacherId, @RequestParam String name, @RequestParam(defaultValue = "1") int current,
+    public Result page(@RequestParam int schoolId, @RequestParam int classId, @RequestParam(required = false) String teacherName,
+                       @RequestParam(required = false) Long teacherId, @RequestParam String name, @RequestParam(defaultValue = "1") int current,
                        @RequestParam(defaultValue = "10") int size) {
         Page<Course> coursePage = new Page<>(current, size);
         LambdaQueryWrapper<Course> queryWrapper;
@@ -103,9 +137,9 @@ public class CourseController {
      * @return
      */
     @PutMapping("update")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
     public Result update(@RequestBody Course course) {
-        boolean update = courseService.update(Wrappers.<Course>lambdaUpdate().eq(Course::getId, course.getId()).set(Course::getName, course.getName()));
+        boolean update = courseService.update(Wrappers.<Course>lambdaUpdate().eq(Course::getId, course.getId()).set(Course::getName, course.getName()).set(Course::getClassId, course.getClassId()));
         return update ? Result.success() : Result.error("修改失败");
     }
 
