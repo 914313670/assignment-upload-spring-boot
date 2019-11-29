@@ -140,14 +140,20 @@ public class ClassController {
      */
     @PutMapping("update")
     @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
-    public Result update(@RequestBody Class clazz) {
+    public Result update(HttpServletRequest request,@RequestBody Class clazz) {
         Class one1 = classService.getOne(Wrappers.<Class>lambdaQuery().eq(Class::getName, clazz.getName()).eq(Class::getSpecialty, clazz.getSpecialty()).
                 eq(Class::getSchoolId, clazz.getSchoolId()));
         if (one1 != null) {
             return Result.error("该班级名已存在");
         }
-        Class one = new Class();
-        one.setId(clazz.getId());
+        // 判断老师是否拥有修改权限
+        String token = request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length());
+        Claims claim = JwtUtil.getClaim(token);
+        Long id = JwtUtil.getSubject(token);
+        Class one = classService.getById(clazz.getId());
+        if (claim.get("role").toString().equals("ROLE_TEACHER") && !one.getUserId().equals(id)){
+            return Result.error("你不是创建人，没有权限修改");
+        }
         one.setName(clazz.getName());
         one.setSpecialty(clazz.getSpecialty());
         return classService.updateById(one) ? Result.success("更新成功") : Result.error("更新失败");

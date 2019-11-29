@@ -180,4 +180,18 @@ public class CourseController {
         boolean delete = courseService.removeByIds(ids);
         return delete ? Result.success() : Result.error("删除失败");
     }
+
+    /**
+     * 根据班级查询课程
+     * @param classId
+     * @return
+     */
+    @PreAuthorize("hasRole('TEACHER')")
+    @GetMapping("getByClass")
+    public Result getByClass(HttpServletRequest request,@RequestParam int classId){
+        Long id = JwtUtil.getSubject(request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length()));
+        List<Course> list = courseService.list(Wrappers.<Course>lambdaQuery().eq(Course::getClassId, classId).eq(Course::getTeacherId,id));
+        return Result.success(list);
+    }
+
 }
