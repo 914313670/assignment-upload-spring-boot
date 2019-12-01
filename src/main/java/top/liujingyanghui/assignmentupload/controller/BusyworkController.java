@@ -4,12 +4,23 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import top.liujingyanghui.assignmentupload.config.TokenConfig;
 import top.liujingyanghui.assignmentupload.entity.Busywork;
 import top.liujingyanghui.assignmentupload.service.BusyworkService;
+import top.liujingyanghui.assignmentupload.utils.JwtUtil;
 import top.liujingyanghui.assignmentupload.vo.Result;
 
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -18,7 +29,10 @@ import java.util.List;
 @RestController
 @RequestMapping("api/busywork")
 public class BusyworkController {
-
+    @Autowired
+    private TokenConfig tokenConfig;
+    @Value("upload.base.url")
+    private String uploadBaseUrl;
     @Autowired
     private BusyworkService busyworkService;
 
@@ -61,5 +75,40 @@ public class BusyworkController {
     public Result deletes(@RequestParam List<String> ids){
         boolean remove = busyworkService.removeByIds(ids);
         return remove?Result.success():Result.error("删除失败");
+    }
+
+    /**
+     * 附件上传
+     * @param request
+     * @param file
+     * @return
+     */
+    @PostMapping("attachmentUpload")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Result attachmentUpload(HttpServletRequest request, @RequestParam("file") MultipartFile file){
+        if (file.isEmpty()) {
+            return Result.error("上传失败");
+        }
+        String fileName = file.getOriginalFilename();
+        String suffixName = fileName.substring(fileName.lastIndexOf("."));
+//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        StringBuilder tempName = new StringBuilder();
+        String token = request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length());
+        Long teacherId = JwtUtil.getSubject(token);
+        tempName.append(uploadBaseUrl).append(teacherId.toString()+"_").append(LocalDateTime.now().toString()).append(suffixName);
+        String newFileName = tempName.toString();
+        File dest = new File(newFileName);
+        // 判断路径是否存在，如果不存在则创建
+        if(!dest.getParentFile().exists()) {
+            dest.getParentFile().mkdirs();
+        }
+        try {
+            // 保存文件
+            file.transferTo(dest);
+            return Result.success(newFileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return Result.error("上传失败");
     }
 }
