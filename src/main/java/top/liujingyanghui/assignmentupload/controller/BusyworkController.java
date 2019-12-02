@@ -31,7 +31,7 @@ import java.util.List;
 public class BusyworkController {
     @Autowired
     private TokenConfig tokenConfig;
-    @Value("upload.base.url")
+    @Value("${upload.base.url}")
     private String uploadBaseUrl;
     @Autowired
     private BusyworkService busyworkService;
@@ -91,11 +91,11 @@ public class BusyworkController {
         }
         String fileName = file.getOriginalFilename();
         String suffixName = fileName.substring(fileName.lastIndexOf("."));
-//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
         StringBuilder tempName = new StringBuilder();
         String token = request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length());
         Long teacherId = JwtUtil.getSubject(token);
-        tempName.append(uploadBaseUrl).append(teacherId.toString()+"_").append(LocalDateTime.now().toString()).append(suffixName);
+        tempName.append(uploadBaseUrl+"busywork/attachment/").append(teacherId.toString()+"_").append(sdf.format(new Date())).append(suffixName);
         String newFileName = tempName.toString();
         File dest = new File(newFileName);
         // 判断路径是否存在，如果不存在则创建
