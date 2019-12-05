@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import top.liujingyanghui.assignmentupload.config.TokenConfig;
+import top.liujingyanghui.assignmentupload.config.UrlConfig;
 import top.liujingyanghui.assignmentupload.entity.Busywork;
 import top.liujingyanghui.assignmentupload.service.BusyworkService;
 import top.liujingyanghui.assignmentupload.utils.JwtUtil;
@@ -31,8 +32,8 @@ import java.util.List;
 public class BusyworkController {
     @Autowired
     private TokenConfig tokenConfig;
-    @Value("${upload.base.url}")
-    private String uploadBaseUrl;
+    @Autowired
+    private UrlConfig urlConfig;
     @Autowired
     private BusyworkService busyworkService;
 
@@ -95,9 +96,10 @@ public class BusyworkController {
         StringBuilder tempName = new StringBuilder();
         String token = request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length());
         Long teacherId = JwtUtil.getSubject(token);
-        tempName.append(uploadBaseUrl+"busywork/attachment/").append(teacherId.toString()+"_").append(sdf.format(new Date())).append(suffixName);
-        String newFileName = tempName.toString();
-        File dest = new File(newFileName);
+        String newFileName=teacherId.toString()+"_"+sdf.format(new Date())+suffixName;
+        tempName.append(urlConfig.getUploadBaseUrl()+"busywork/attachment/").append(newFileName);
+        String fielPath = tempName.toString();
+        File dest = new File(fielPath);
         // 判断路径是否存在，如果不存在则创建
         if(!dest.getParentFile().exists()) {
             dest.getParentFile().mkdirs();
@@ -105,7 +107,7 @@ public class BusyworkController {
         try {
             // 保存文件
             file.transferTo(dest);
-            return Result.success(newFileName);
+            return Result.success(urlConfig.getBaseUrl()+"resource/busywork/attachment/"+newFileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
