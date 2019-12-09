@@ -36,6 +36,15 @@ public class BusyworkController {
     private BusyworkService busyworkService;
 
     /**
+     * 作业新增
+     * @return
+     */
+    @PostMapping("add")
+    public Result add(@RequestBody Busywork busywork){
+        return Result.success();
+    }
+
+    /**
      * 分页查询作业
      * @param courseId
      * @param title

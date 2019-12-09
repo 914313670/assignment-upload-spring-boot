@@ -26,6 +26,9 @@ public class Busywork {
     @TableField(value = "demand")
     private String demand;
 
+    /**
+     * 课程Id
+     */
     @TableField(value = "course_id")
     private Long courseId;
 
