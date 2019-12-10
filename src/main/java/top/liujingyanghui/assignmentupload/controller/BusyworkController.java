@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -41,7 +42,11 @@ public class BusyworkController {
      */
     @PostMapping("add")
     public Result add(@RequestBody Busywork busywork){
-        return Result.success();
+        busywork.setSubmitNum(0);
+        busywork.setUnpaidNum(0);
+        busywork.setCreateTime(LocalDateTime.now());
+        boolean save = busyworkService.save(busywork);
+        return save?Result.success():Result.error("新增失败");
     }
 
     /**
