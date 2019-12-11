@@ -3,16 +3,19 @@ package top.liujingyanghui.assignmentupload.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import top.liujingyanghui.assignmentupload.config.TokenConfig;
 import top.liujingyanghui.assignmentupload.config.UrlConfig;
 import top.liujingyanghui.assignmentupload.entity.Busywork;
+import top.liujingyanghui.assignmentupload.entity.Course;
 import top.liujingyanghui.assignmentupload.service.BusyworkService;
+import top.liujingyanghui.assignmentupload.service.CourseService;
 import top.liujingyanghui.assignmentupload.utils.JwtUtil;
+import top.liujingyanghui.assignmentupload.vo.BusyworkVo;
 import top.liujingyanghui.assignmentupload.vo.Result;
 
 import javax.servlet.http.HttpServletRequest;
@@ -35,6 +38,8 @@ public class BusyworkController {
     private UrlConfig urlConfig;
     @Autowired
     private BusyworkService busyworkService;
+    @Autowired
+    private CourseService courseService;
 
     /**
      * 作业新增
@@ -47,6 +52,34 @@ public class BusyworkController {
         busywork.setCreateTime(LocalDateTime.now());
         boolean save = busyworkService.save(busywork);
         return save?Result.success():Result.error("新增失败");
+    }
+
+    /**
+     * 更新
+     * @param busywork
+     * @return
+     */
+    @PutMapping("update")
+    public Result update(@RequestBody Busywork busywork){
+        busywork.setCreateTime(null);
+        busywork.setSubmitNum(null);
+        busywork.setUnpaidNum(null);
+        boolean update = busyworkService.updateById(busywork);
+        return update?Result.success():Result.error();
+    }
+
+    /**
+     * 根据ID查询单个
+     * @return
+     */
+    @GetMapping("getOne")
+    public Result getOne(@RequestParam long id){
+        Busywork busywork = busyworkService.getById(id);
+        BusyworkVo busyworkVo = new BusyworkVo();
+        BeanUtils.copyProperties(busywork,busyworkVo);
+        Course course = courseService.getById(busywork.getCourseId());
+        busyworkVo.setClassId(course.getClassId());
+        return Result.success(busyworkVo);
     }
 
     /**
