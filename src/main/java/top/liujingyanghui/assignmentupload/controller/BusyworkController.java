@@ -46,12 +46,10 @@ public class BusyworkController {
      * @return
      */
     @PostMapping("add")
+    @PreAuthorize("hasRole('TEACHER')")
     public Result add(@RequestBody Busywork busywork){
-        busywork.setSubmitNum(0);
-        busywork.setUnpaidNum(0);
-        busywork.setCreateTime(LocalDateTime.now());
-        boolean save = busyworkService.save(busywork);
-        return save?Result.success():Result.error("新增失败");
+        busyworkService.add(busywork);
+        return Result.success();
     }
 
     /**
@@ -60,6 +58,7 @@ public class BusyworkController {
      * @return
      */
     @PutMapping("update")
+    @PreAuthorize("hasRole('TEACHER')")
     public Result update(@RequestBody Busywork busywork){
         busywork.setCreateTime(null);
         busywork.setSubmitNum(null);

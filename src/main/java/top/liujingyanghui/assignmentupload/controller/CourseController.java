@@ -19,6 +19,7 @@ import top.liujingyanghui.assignmentupload.utils.JwtUtil;
 import top.liujingyanghui.assignmentupload.vo.CourseVo;
 import top.liujingyanghui.assignmentupload.vo.PageVo;
 import top.liujingyanghui.assignmentupload.vo.Result;
+import top.liujingyanghui.assignmentupload.vo.ResultEnum;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -191,6 +192,23 @@ public class CourseController {
     public Result getByClass(HttpServletRequest request,@RequestParam int classId){
         Long id = JwtUtil.getSubject(request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length()));
         List<Course> list = courseService.list(Wrappers.<Course>lambdaQuery().eq(Course::getClassId, classId).eq(Course::getTeacherId,id));
+        return Result.success(list);
+    }
+
+    /**
+     * 学生获取课程列表
+     * @param request
+     * @return
+     */
+    @GetMapping("getByStudent")
+    @PreAuthorize("hasRole('STUDENT')")
+    public Result getByStudent(HttpServletRequest request){
+        Long id = JwtUtil.getSubject(request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length()));
+        User user = userService.getById(id);
+        if (user.getClassId()==null){
+            return Result.success(ResultEnum.NOT_JOIN_CLASS);
+        }
+        List<Course> list = courseService.list(Wrappers.<Course>lambdaQuery().eq(Course::getClassId, user.getClassId()));
         return Result.success(list);
     }
 

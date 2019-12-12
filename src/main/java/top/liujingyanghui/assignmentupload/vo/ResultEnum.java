@@ -16,6 +16,7 @@ public enum ResultEnum {
     SCHOOL_IS_EXIST(3,"该学校已存在"),
     INPUT_IS_NULL(4,"输入的值为空"),
     CLASS_IS_EXIST(5,"该学校已存在"),
+    NOT_JOIN_CLASS(6,"请先加入班级"),
     ;
     private int status;
     private String message;
