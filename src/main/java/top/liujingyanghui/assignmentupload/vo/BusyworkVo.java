@@ -25,6 +25,11 @@ public class BusyworkVo {
     private Long courseId;
 
     /**
+     * 课程名
+     */
+    private String courseName;
+
+    /**
      * 已交数量
      */
     private Integer submitNum;

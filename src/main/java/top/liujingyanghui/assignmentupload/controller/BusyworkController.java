@@ -89,9 +89,14 @@ public class BusyworkController {
     public Result getOne(@RequestParam long id) {
         Busywork busywork = busyworkService.getById(id);
         BusyworkVo busyworkVo = new BusyworkVo();
-        BeanUtils.copyProperties(busywork, busyworkVo);
-        Course course = courseService.getById(busywork.getCourseId());
-        busyworkVo.setClassId(course.getClassId());
+        if (busywork != null) {
+            BeanUtils.copyProperties(busywork, busyworkVo);
+            Course course = courseService.getById(busywork.getCourseId());
+            busyworkVo.setClassId(course.getClassId());
+            busyworkVo.setCourseName(course.getName());
+        } else {
+            return Result.error("没有该作业");
+        }
         return Result.success(busyworkVo);
     }
 
@@ -218,6 +223,7 @@ public class BusyworkController {
             }
             list.add(busyworkStudentPageVo);
         }
+        pageVo.setRecords(list);
         return Result.success(pageVo);
     }
 }

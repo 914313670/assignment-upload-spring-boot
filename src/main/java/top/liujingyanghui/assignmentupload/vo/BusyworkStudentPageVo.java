@@ -34,6 +34,11 @@ public class BusyworkStudentPageVo {
     private Integer status;
 
     /**
+     * 附件地址
+     */
+    private String attachment;
+
+    /**
      * 结束时间
      */
     private LocalDateTime endTime;
