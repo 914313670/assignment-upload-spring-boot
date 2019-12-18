@@ -12,17 +12,12 @@ import top.liujingyanghui.assignmentupload.config.TokenConfig;
 import top.liujingyanghui.assignmentupload.config.UrlConfig;
 import top.liujingyanghui.assignmentupload.entity.Busywork;
 import top.liujingyanghui.assignmentupload.entity.BusyworkUpload;
+import top.liujingyanghui.assignmentupload.entity.Class;
 import top.liujingyanghui.assignmentupload.entity.Course;
 import top.liujingyanghui.assignmentupload.entity.User;
-import top.liujingyanghui.assignmentupload.service.BusyworkService;
-import top.liujingyanghui.assignmentupload.service.BusyworkUploadService;
-import top.liujingyanghui.assignmentupload.service.CourseService;
-import top.liujingyanghui.assignmentupload.service.UserService;
+import top.liujingyanghui.assignmentupload.service.*;
 import top.liujingyanghui.assignmentupload.utils.JwtUtil;
-import top.liujingyanghui.assignmentupload.vo.BusyworkStudentPageVo;
-import top.liujingyanghui.assignmentupload.vo.BusyworkVo;
-import top.liujingyanghui.assignmentupload.vo.PageVo;
-import top.liujingyanghui.assignmentupload.vo.Result;
+import top.liujingyanghui.assignmentupload.vo.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
@@ -51,6 +46,8 @@ public class BusyworkController {
     private UserService userService;
     @Autowired
     private BusyworkUploadService busyworkUploadService;
+    @Autowired
+    private ClassService classService;
 
     /**
      * 作业新增
@@ -101,6 +98,44 @@ public class BusyworkController {
     }
 
     /**
+     * 学生获取详情
+     *
+     * @return
+     */
+    @GetMapping("studentGetDetails")
+    @PreAuthorize("hasRole('STUDENT')")
+    public Result studentGetDetails(HttpServletRequest request, @RequestParam long id) {
+        Busywork busywork = busyworkService.getById(id);
+        BusyworkStudentDeatilsVo busyworkStudentDeatilsVo = new BusyworkStudentDeatilsVo();
+        if (busywork != null) {
+            BeanUtils.copyProperties(busywork, busyworkStudentDeatilsVo);
+            Course course = courseService.getById(busywork.getCourseId());
+            busyworkStudentDeatilsVo.setCourseName(course.getName());
+            String token = request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length());
+            Long userId = JwtUtil.getSubject(token);
+            BusyworkUpload busyworkUpload = busyworkUploadService.getOne(Wrappers.<BusyworkUpload>lambdaQuery().eq(BusyworkUpload::getUserId, userId).eq(BusyworkUpload::getBusyworkId, id));
+            if (busyworkUpload == null) {
+                if (LocalDateTime.now().isBefore(busywork.getEndTime())) {
+                    busyworkStudentDeatilsVo.setStatus(3);
+                } else {
+                    busyworkStudentDeatilsVo.setStatus(4);
+                }
+            } else {
+                busyworkStudentDeatilsVo.setUrl(busyworkUpload.getUrl());
+                if (LocalDateTime.now().isBefore(busywork.getEndTime())) {
+                    busyworkStudentDeatilsVo.setStatus(1);
+                } else {
+                    busyworkStudentDeatilsVo.setStatus(2);
+                }
+            }
+
+        } else {
+            return Result.error("没有该作业");
+        }
+        return Result.success(busyworkStudentDeatilsVo);
+    }
+
+    /**
      * 分页查询作业
      *
      * @param courseId
@@ -116,7 +151,21 @@ public class BusyworkController {
         Page<Busywork> busyworkPage = new Page<>(current, size);
         IPage<Busywork> page = busyworkService.page(busyworkPage, Wrappers.<Busywork>lambdaQuery().eq(Busywork::getCourseId, courseId).like(Busywork::getTitle, title).
                 orderByDesc(Busywork::getCreateTime));
-        return Result.success(page);
+        PageVo<Busywork> pageVo = new PageVo<>();
+        Course course = courseService.getById(courseId);
+        Class clazz = classService.getById(course.getClassId());
+        pageVo.setTotal(page.getTotal());
+        pageVo.setSize(page.getSize());
+        pageVo.setCurrent(page.getCurrent());
+        ArrayList<Busywork> busyworks = new ArrayList<>();
+        for (Busywork item : page.getRecords()) {
+            int submitCount = busyworkUploadService.count(Wrappers.<BusyworkUpload>lambdaQuery().eq(BusyworkUpload::getBusyworkId, item.getId()));
+            item.setUnpaidNum(clazz.getNumber()-submitCount);
+            item.setSubmitNum(submitCount);
+            busyworks.add(item);
+        }
+        pageVo.setRecords(busyworks);
+        return Result.success(pageVo);
     }
 
     /**
@@ -204,23 +253,30 @@ public class BusyworkController {
         pageVo.setCurrent(current);
         pageVo.setSize(size);
         pageVo.setTotal(page.getTotal());
+        Class clazz = classService.getById(course.getClassId());
         List<BusyworkStudentPageVo> list = new ArrayList<>();
         List<Busywork> busyworks = page.getRecords();
         for (Busywork busywork : busyworks) {
             BusyworkStudentPageVo busyworkStudentPageVo = new BusyworkStudentPageVo();
             BeanUtils.copyProperties(busywork, busyworkStudentPageVo);
-            // 状态待加入
             BusyworkUpload busyworkUpload = busyworkUploadService.getOne(Wrappers.<BusyworkUpload>lambdaQuery().eq(BusyworkUpload::getUserId, userId).
                     eq(BusyworkUpload::getBusyworkId, busywork.getId()));
             if (busyworkUpload == null) {
-                if (LocalDateTime.now().isAfter(busywork.getEndTime())) {
-                    busyworkStudentPageVo.setStatus(2);
-                } else {
+                if (LocalDateTime.now().isBefore(busywork.getEndTime())) {
                     busyworkStudentPageVo.setStatus(3);
+                } else {
+                    busyworkStudentPageVo.setStatus(4);
                 }
             } else {
-                busyworkStudentPageVo.setStatus(1);
+                if (LocalDateTime.now().isBefore(busywork.getEndTime())) {
+                    busyworkStudentPageVo.setStatus(1);
+                } else {
+                    busyworkStudentPageVo.setStatus(2);
+                }
             }
+            int submitCount = busyworkUploadService.count(Wrappers.<BusyworkUpload>lambdaQuery().eq(BusyworkUpload::getBusyworkId, busywork.getId()));
+            busyworkStudentPageVo.setUnpaidNum(clazz.getNumber()-submitCount);
+            busyworkStudentPageVo.setSubmitNum(submitCount);
             list.add(busyworkStudentPageVo);
         }
         pageVo.setRecords(list);

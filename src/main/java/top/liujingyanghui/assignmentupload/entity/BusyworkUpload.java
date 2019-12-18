@@ -25,6 +25,11 @@ public class BusyworkUpload {
     private Long userId;
 
     /**
+     * 班级ID
+     */
+    private Long classId;
+
+    /**
      * 作业ID
      */
     @TableField(value = "busywork_id")

@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import top.liujingyanghui.assignmentupload.config.TokenConfig;
+import top.liujingyanghui.assignmentupload.entity.BusyworkUpload;
 import top.liujingyanghui.assignmentupload.entity.Class;
 import top.liujingyanghui.assignmentupload.entity.User;
+import top.liujingyanghui.assignmentupload.service.BusyworkUploadService;
 import top.liujingyanghui.assignmentupload.service.ClassService;
 import top.liujingyanghui.assignmentupload.service.UserService;
 import top.liujingyanghui.assignmentupload.utils.JwtUtil;
@@ -34,6 +36,8 @@ public class UserController {
     private UserService userService;
     @Autowired
     private ClassService classService;
+    @Autowired
+    private BusyworkUploadService busyworkUploadService;
 
     /**
      * 老师分页
@@ -139,6 +143,7 @@ public class UserController {
             return Result.error("你不是班级创建人，没有权限");
         }
         boolean update = userService.update(Wrappers.<User>lambdaUpdate().eq(User::getId, id).set(User::getClassId, null));
+        busyworkUploadService.remove(Wrappers.<BusyworkUpload>lambdaQuery().eq(BusyworkUpload::getClassId, clazz.getId()).eq(BusyworkUpload::getUserId, id));
         return update ? Result.success() : Result.error("移出失败");
     }
 }

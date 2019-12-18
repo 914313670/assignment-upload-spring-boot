@@ -35,13 +35,13 @@ public class Busywork {
     /**
      * 已交数量
      */
-    @TableField(value = "submit_num")
+    @TableField(exist = false)
     private Integer submitNum;
 
     /**
      * 未交数量
      */
-    @TableField(value = "unpaid_num")
+    @TableField(exist = false)
     private Integer unpaidNum;
 
     /**
