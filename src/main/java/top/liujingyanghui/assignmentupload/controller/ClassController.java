@@ -233,4 +233,13 @@ public class ClassController {
         List<Class> list = classService.list(Wrappers.<Class>lambdaQuery().select(Class::getName, Class::getId).eq(Class::getSchoolId, schoolId));
         return Result.success(list);
     }
+
+    /**
+     * 获取班级数量
+     * @return
+     */
+    @GetMapping("count")
+    public Result count(){
+        return Result.success(classService.count());
+    }
 }

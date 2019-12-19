@@ -150,4 +150,14 @@ public class SchoolController {
         boolean update = schoolService.update(Wrappers.<School>lambdaUpdate().in(School::getId, ids).set(School::getDelFlag, 1));
         return update ? Result.success() : Result.error();
     }
+
+    /**
+     * 获取数量
+     * @return
+     */
+    @GetMapping("count")
+    public Result count(){
+        int count = schoolService.count();
+        return Result.success(count);
+    }
 }

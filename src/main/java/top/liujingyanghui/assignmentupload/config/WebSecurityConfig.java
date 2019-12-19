@@ -64,7 +64,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 禁用session
                 .and().exceptionHandling().authenticationEntryPoint(new RestAuthenticationEntryPoint()).and()
                 .authorizeRequests() // 所有请求都要验证
-                .antMatchers("/api/auth/**","/resource/**").permitAll() // 登录注册等请求过滤
+                .antMatchers("/api/auth/**","/resource/**","/api/busywork/package-download").permitAll() // 登录注册等请求过滤
 //				.antMatchers("/api/**").permitAll() // 测试
                 .antMatchers("/*.html", "/favicon.ico", "/**/*.html", "/**/*.js", "/**/*.css").permitAll() // 静态资源过滤
                 .anyRequest().fullyAuthenticated().and().exceptionHandling() // 验证不通过的配置

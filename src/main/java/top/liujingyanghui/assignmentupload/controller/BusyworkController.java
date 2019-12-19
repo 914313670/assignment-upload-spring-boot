@@ -10,16 +10,16 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import top.liujingyanghui.assignmentupload.config.TokenConfig;
 import top.liujingyanghui.assignmentupload.config.UrlConfig;
-import top.liujingyanghui.assignmentupload.entity.Busywork;
-import top.liujingyanghui.assignmentupload.entity.BusyworkUpload;
 import top.liujingyanghui.assignmentupload.entity.Class;
-import top.liujingyanghui.assignmentupload.entity.Course;
-import top.liujingyanghui.assignmentupload.entity.User;
+import top.liujingyanghui.assignmentupload.entity.*;
+import top.liujingyanghui.assignmentupload.exception.MyException;
 import top.liujingyanghui.assignmentupload.service.*;
+import top.liujingyanghui.assignmentupload.utils.FilePackageUtil;
 import top.liujingyanghui.assignmentupload.utils.JwtUtil;
 import top.liujingyanghui.assignmentupload.vo.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -48,6 +48,8 @@ public class BusyworkController {
     private BusyworkUploadService busyworkUploadService;
     @Autowired
     private ClassService classService;
+    @Autowired
+    private FilePackageUtil filePackageUtil;
 
     /**
      * 作业新增
@@ -160,7 +162,7 @@ public class BusyworkController {
         ArrayList<Busywork> busyworks = new ArrayList<>();
         for (Busywork item : page.getRecords()) {
             int submitCount = busyworkUploadService.count(Wrappers.<BusyworkUpload>lambdaQuery().eq(BusyworkUpload::getBusyworkId, item.getId()));
-            item.setUnpaidNum(clazz.getNumber()-submitCount);
+            item.setUnpaidNum(clazz.getNumber() - submitCount);
             item.setSubmitNum(submitCount);
             busyworks.add(item);
         }
@@ -275,11 +277,31 @@ public class BusyworkController {
                 }
             }
             int submitCount = busyworkUploadService.count(Wrappers.<BusyworkUpload>lambdaQuery().eq(BusyworkUpload::getBusyworkId, busywork.getId()));
-            busyworkStudentPageVo.setUnpaidNum(clazz.getNumber()-submitCount);
+            busyworkStudentPageVo.setUnpaidNum(clazz.getNumber() - submitCount);
             busyworkStudentPageVo.setSubmitNum(submitCount);
             list.add(busyworkStudentPageVo);
         }
         pageVo.setRecords(list);
         return Result.success(pageVo);
+    }
+
+    /**
+     * 学生作业打包下载
+     *
+     * @param response
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping("package-download")
+    public String downloadFile(@RequestParam String token, HttpServletResponse response, @RequestParam long busyworkId) throws Exception {
+        Long userId = JwtUtil.getSubject(token);
+        Busywork busywork = busyworkService.getById(busyworkId);
+        Course course = courseService.getById(busywork.getCourseId());
+        if (!userId.equals(course.getTeacherId())) {
+            throw new MyException(ResultEnum.ERROR);
+        }
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        filePackageUtil.downLoadFiles("busywork/info/" + busyworkId, busywork.getTitle() + "_" + df.format(new Date()) + ".zip", response);
+        return null;
     }
 }

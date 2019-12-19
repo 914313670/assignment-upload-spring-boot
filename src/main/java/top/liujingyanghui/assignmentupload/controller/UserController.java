@@ -146,4 +146,20 @@ public class UserController {
         busyworkUploadService.remove(Wrappers.<BusyworkUpload>lambdaQuery().eq(BusyworkUpload::getClassId, clazz.getId()).eq(BusyworkUpload::getUserId, id));
         return update ? Result.success() : Result.error("移出失败");
     }
+
+    /**
+     * 获取老师数量
+     */
+    @GetMapping("teacher-count")
+    public Result teacherCount(){
+        return Result.success(userService.count(Wrappers.<User>lambdaQuery().eq(User::getRole,"ROLE_TEACHER")));
+    }
+
+    /**
+     * 获取学生数量
+     */
+    @GetMapping("student-count")
+    public Result studentCount(){
+        return Result.success(userService.count(Wrappers.<User>lambdaQuery().eq(User::getRole,"ROLE_STUDENT")));
+    }
 }

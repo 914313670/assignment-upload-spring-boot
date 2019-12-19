@@ -212,4 +212,11 @@ public class CourseController {
         return Result.success(list);
     }
 
+    /**
+     * 获取课程数量
+     */
+    @GetMapping("count")
+    public Result count(){
+        return Result.success(courseService.count());
+    }
 }
