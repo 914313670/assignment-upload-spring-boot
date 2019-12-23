@@ -216,7 +216,7 @@ public class CourseController {
      * 获取课程数量
      */
     @GetMapping("count")
-    public Result count(){
-        return Result.success(courseService.count());
+    public Result count(@RequestParam int schoolId){
+        return Result.success(courseService.count(Wrappers.<Course>lambdaQuery().eq(schoolId!=-1,Course::getSchoolId,schoolId)));
     }
 }

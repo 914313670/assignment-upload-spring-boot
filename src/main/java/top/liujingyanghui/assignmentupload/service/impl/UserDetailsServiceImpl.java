@@ -14,8 +14,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import top.liujingyanghui.assignmentupload.dao.ClassMapper;
+import top.liujingyanghui.assignmentupload.dao.SchoolMapper;
 import top.liujingyanghui.assignmentupload.dao.UserMapper;
+import top.liujingyanghui.assignmentupload.entity.Class;
 import top.liujingyanghui.assignmentupload.entity.JwtUser;
+import top.liujingyanghui.assignmentupload.entity.School;
 import top.liujingyanghui.assignmentupload.entity.User;
 import top.liujingyanghui.assignmentupload.exception.MyException;
 import top.liujingyanghui.assignmentupload.service.UserService;
@@ -34,6 +38,11 @@ public class UserDetailsServiceImpl extends ServiceImpl<UserMapper, User> implem
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private SchoolMapper schoolMapper;
+    @Autowired
+    private ClassMapper classMapper;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -85,7 +94,17 @@ public class UserDetailsServiceImpl extends ServiceImpl<UserMapper, User> implem
         tokenMap.put("role", jwtUser.getRole());
         LoginVo loginVo = new LoginVo();
         loginVo.setToken(JwtUtil.setClaim(tokenMap, Long.toString(jwtUser.getId())));
-        BeanUtils.copyProperties(jwtUser,loginVo);
+        BeanUtils.copyProperties(jwtUser, loginVo);
+        loginVo.setEmail(jwtUser.getUsername());
+        School school = schoolMapper.selectById(jwtUser.getSchoolId());
+        Class clazz = classMapper.selectById(jwtUser.getClassId());
+        if (school != null) {
+            loginVo.setSchoolName(school.getName());
+        }
+        if (clazz != null) {
+            loginVo.setClassName(clazz.getName());
+        }
+        userMapper.update(null, Wrappers.<User>lambdaUpdate().eq(User::getId, jwtUser.getId()).set(User::getLastLoginTime, LocalDateTime.now()));
         return loginVo;
     }
 }

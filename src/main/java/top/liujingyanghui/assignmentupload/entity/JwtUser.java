@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 
 /**
@@ -17,7 +18,11 @@ public class JwtUser implements UserDetails {
     private final String password;
     private final String role;
     private final String name;
+    private String number;
+    private Long classId;
     private Integer schoolId;
+    private LocalDateTime createTime;
+    private LocalDateTime lastLoginTime;
     /**
      * 权限类.
      */
@@ -33,6 +38,10 @@ public class JwtUser implements UserDetails {
         this.role = user.getRole();
         this.authorities = authorities;
         this.name = user.getName();
+        this.number=user.getNumber();
+        this.classId=user.getClassId();
+        this.createTime=user.getCreateTime();
+        this.lastLoginTime=user.getLastLoginTime();
         this.schoolId = user.getSchoolId();
     }
 

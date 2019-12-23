@@ -151,15 +151,15 @@ public class UserController {
      * 获取老师数量
      */
     @GetMapping("teacher-count")
-    public Result teacherCount(){
-        return Result.success(userService.count(Wrappers.<User>lambdaQuery().eq(User::getRole,"ROLE_TEACHER")));
+    public Result teacherCount(@RequestParam int schoolId){
+        return Result.success(userService.count(Wrappers.<User>lambdaQuery().eq(User::getRole,"ROLE_TEACHER").eq(schoolId!=-1,User::getSchoolId,schoolId)));
     }
 
     /**
      * 获取学生数量
      */
     @GetMapping("student-count")
-    public Result studentCount(){
-        return Result.success(userService.count(Wrappers.<User>lambdaQuery().eq(User::getRole,"ROLE_STUDENT")));
+    public Result studentCount(@RequestParam int schoolId){
+        return Result.success(userService.count(Wrappers.<User>lambdaQuery().eq(User::getRole,"ROLE_STUDENT").eq(schoolId!=-1,User::getSchoolId,schoolId)));
     }
 }

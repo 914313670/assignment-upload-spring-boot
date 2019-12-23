@@ -140,7 +140,7 @@ public class ClassController {
      */
     @PutMapping("update")
     @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
-    public Result update(HttpServletRequest request,@RequestBody Class clazz) {
+    public Result update(HttpServletRequest request, @RequestBody Class clazz) {
         Class one1 = classService.getOne(Wrappers.<Class>lambdaQuery().eq(Class::getName, clazz.getName()).eq(Class::getSpecialty, clazz.getSpecialty()).
                 eq(Class::getSchoolId, clazz.getSchoolId()));
         if (one1 != null) {
@@ -151,7 +151,7 @@ public class ClassController {
         Claims claim = JwtUtil.getClaim(token);
         Long id = JwtUtil.getSubject(token);
         Class one = classService.getById(clazz.getId());
-        if (claim.get("role").toString().equals("ROLE_TEACHER") && !one.getUserId().equals(id)){
+        if (claim.get("role").toString().equals("ROLE_TEACHER") && !one.getUserId().equals(id)) {
             return Result.error("你不是创建人，没有权限修改");
         }
         one.setName(clazz.getName());
@@ -235,11 +235,12 @@ public class ClassController {
     }
 
     /**
-     * 获取班级数量
+     * 根据学校获取班级数量（学校id为-1时获取所有学校）
+     *
      * @return
      */
     @GetMapping("count")
-    public Result count(){
-        return Result.success(classService.count());
+    public Result count(@RequestParam int schoolId) {
+        return Result.success(classService.count(Wrappers.<Class>lambdaQuery().eq(schoolId != -1, Class::getSchoolId, schoolId)));
     }
 }
