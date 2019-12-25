@@ -38,12 +38,10 @@ public class UserDetailsServiceImpl extends ServiceImpl<UserMapper, User> implem
 
     @Autowired
     private UserMapper userMapper;
-
     @Autowired
     private SchoolMapper schoolMapper;
     @Autowired
     private ClassMapper classMapper;
-
     @Autowired
     private AuthenticationManager authenticationManager;
 
