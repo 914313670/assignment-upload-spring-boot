@@ -48,6 +48,16 @@ public class User {
     private Integer schoolId;
 
     /**
+     * 状态，1：正常使用，2：未激活
+     */
+    private Integer status;
+
+    /**
+     * 激活码
+     */
+    private String activeCode;
+
+    /**
      * 注册时间
      */
     private LocalDateTime createTime;

@@ -30,10 +30,10 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
             map.put("message", "用户名或密码错误，请重新输入！");
         } else if (authException instanceof DisabledException) {
             map.put("status", 401);
-            map.put("message", "该账号已被禁用！");
+            map.put("message", "账号未激活！");
         } else if (authException instanceof LockedException) {
             map.put("status", 401);
-            map.put("message", "该账号已被锁定！");
+            map.put("message", "账号已被锁定！");
         } else if (authException instanceof InsufficientAuthenticationException) {
             map.put("status", 401);
             map.put("message", "请先登陆在访问！");

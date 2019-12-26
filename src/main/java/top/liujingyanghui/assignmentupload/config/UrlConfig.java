@@ -21,4 +21,10 @@ public class UrlConfig {
      */
     @Value("${upload.base.url}")
     private String uploadBaseUrl;
+
+    /**
+     * 前端根路由
+     */
+    @Value("${web.base.url}")
+    private String webBaseUrl;
 }

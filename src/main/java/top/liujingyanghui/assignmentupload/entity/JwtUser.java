@@ -21,6 +21,7 @@ public class JwtUser implements UserDetails {
     private String number;
     private Long classId;
     private Integer schoolId;
+    private Integer status;
     private LocalDateTime createTime;
     private LocalDateTime lastLoginTime;
     /**
@@ -38,11 +39,12 @@ public class JwtUser implements UserDetails {
         this.role = user.getRole();
         this.authorities = authorities;
         this.name = user.getName();
-        this.number=user.getNumber();
-        this.classId=user.getClassId();
-        this.createTime=user.getCreateTime();
-        this.lastLoginTime=user.getLastLoginTime();
+        this.number = user.getNumber();
+        this.classId = user.getClassId();
+        this.createTime = user.getCreateTime();
+        this.lastLoginTime = user.getLastLoginTime();
         this.schoolId = user.getSchoolId();
+        this.status = user.getStatus();
     }
 
     @Override
@@ -77,6 +79,10 @@ public class JwtUser implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        if (status == 2) {
+            return false;
+        }else{
+            return true;
+        }
     }
 }
