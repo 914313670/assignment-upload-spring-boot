@@ -9,6 +9,7 @@ import top.liujingyanghui.assignmentupload.entity.User;
 import top.liujingyanghui.assignmentupload.service.EmailService;
 import top.liujingyanghui.assignmentupload.service.UserService;
 import top.liujingyanghui.assignmentupload.vo.Result;
+import top.liujingyanghui.assignmentupload.vo.ResultEnum;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -55,17 +56,21 @@ public class AuthController {
                 "</a><br/>如果点击没有反应请自行复制链接在浏览器打开！<br/>高校作业上传系统：<a href='" + urlConfig.getWebBaseUrl() + "'>" + urlConfig.getWebBaseUrl() +
                 "</a>";
         emailService.sendHtmlEmail(user.getEmail(), "用户激活 - 高校作业上传系统", emailContent);
-        return  save? Result.success() : Result.error();
+        return save ? Result.success() : Result.error();
     }
 
     @GetMapping("active")
     public Result active(@RequestParam long id, @RequestParam String activeCode) {
         User user = userService.getOne(Wrappers.<User>lambdaQuery().eq(User::getId, id).eq(User::getActiveCode, activeCode));
         if (user == null) {
-            return Result.error();
+            return Result.error(ResultEnum.ACTIVE_USER_FAIL);
+        }
+        if (user.getStatus() == 1) {
+            return Result.error(ResultEnum.NOT_REPEAT_ACTIVE);
         }
         boolean update = userService.update(Wrappers.<User>lambdaUpdate().eq(User::getId, id).set(User::getStatus, 1));
-        return update ? Result.success() : Result.error();
+        return update ? Result.success("激活成功") : Result.error(ResultEnum.ACTIVE_USER_FAIL);
     }
+
 
 }

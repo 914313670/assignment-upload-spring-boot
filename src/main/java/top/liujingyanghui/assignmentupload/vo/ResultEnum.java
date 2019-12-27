@@ -17,6 +17,8 @@ public enum ResultEnum {
     INPUT_IS_NULL(4,"输入的值为空"),
     CLASS_IS_EXIST(5,"该学校已存在"),
     NOT_JOIN_CLASS(6,"请先加入班级"),
+    ACTIVE_USER_FAIL(7,"激活失败"),
+    NOT_REPEAT_ACTIVE(8,"请勿重复激活")
     ;
     private int status;
     private String message;
