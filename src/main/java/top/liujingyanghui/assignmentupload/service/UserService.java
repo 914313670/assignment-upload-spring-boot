@@ -7,16 +7,16 @@ import top.liujingyanghui.assignmentupload.vo.LoginVo;
 public interface UserService extends IService<User> {
 
     /**
-     * 注册
-     * @param user
-     * @return
-     */
-    LoginVo register(User user);
-
-    /**
      * 登录
      * @param user
      * @return
      */
     LoginVo login(User user);
+
+    /**
+     * 获取用户信息
+     * @param id
+     * @return
+     */
+    LoginVo getUserInfo(long id);
 }

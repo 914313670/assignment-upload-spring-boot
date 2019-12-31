@@ -132,7 +132,7 @@ public class AuthController {
      * @param map
      * @return
      */
-    @PostMapping("updatePasswordByForgetPassword")
+    @PutMapping("updatePasswordByForgetPassword")
     public Result updatePasswordByForgetPassword(@RequestBody Map<String, String> map) {
         String email = map.get("email");
         String code = stringRedisTemplate.opsForValue().get("emailCode_" + email);

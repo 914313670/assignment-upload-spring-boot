@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import top.liujingyanghui.assignmentupload.config.TokenConfig;
 import top.liujingyanghui.assignmentupload.entity.BusyworkUpload;
@@ -13,8 +14,10 @@ import top.liujingyanghui.assignmentupload.entity.Class;
 import top.liujingyanghui.assignmentupload.entity.User;
 import top.liujingyanghui.assignmentupload.service.BusyworkUploadService;
 import top.liujingyanghui.assignmentupload.service.ClassService;
+import top.liujingyanghui.assignmentupload.service.SchoolService;
 import top.liujingyanghui.assignmentupload.service.UserService;
 import top.liujingyanghui.assignmentupload.utils.JwtUtil;
+import top.liujingyanghui.assignmentupload.vo.LoginVo;
 import top.liujingyanghui.assignmentupload.vo.PageVo;
 import top.liujingyanghui.assignmentupload.vo.Result;
 import top.liujingyanghui.assignmentupload.vo.StudentVo;
@@ -38,6 +41,8 @@ public class UserController {
     private ClassService classService;
     @Autowired
     private BusyworkUploadService busyworkUploadService;
+    @Autowired
+    private SchoolService schoolService;
 
     /**
      * 老师分页
@@ -151,15 +156,54 @@ public class UserController {
      * 获取老师数量
      */
     @GetMapping("teacher-count")
-    public Result teacherCount(@RequestParam int schoolId){
-        return Result.success(userService.count(Wrappers.<User>lambdaQuery().eq(User::getRole,"ROLE_TEACHER").eq(schoolId!=-1,User::getSchoolId,schoolId)));
+    public Result teacherCount(@RequestParam int schoolId) {
+        return Result.success(userService.count(Wrappers.<User>lambdaQuery().eq(User::getRole, "ROLE_TEACHER").eq(schoolId != -1, User::getSchoolId, schoolId)));
     }
 
     /**
      * 获取学生数量
      */
     @GetMapping("student-count")
-    public Result studentCount(@RequestParam int schoolId){
-        return Result.success(userService.count(Wrappers.<User>lambdaQuery().eq(User::getRole,"ROLE_STUDENT").eq(schoolId!=-1,User::getSchoolId,schoolId)));
+    public Result studentCount(@RequestParam int schoolId) {
+        return Result.success(userService.count(Wrappers.<User>lambdaQuery().eq(User::getRole, "ROLE_STUDENT").eq(schoolId != -1, User::getSchoolId, schoolId)));
+    }
+
+    /**
+     * 更新用户信息（姓名，学号/工号）
+     *
+     * @param request
+     * @param user
+     * @return
+     */
+    @PutMapping("updateUserInfo")
+    public Result updateUserInfo(HttpServletRequest request, @RequestBody User user) {
+        String token = request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length());
+        Long userId = JwtUtil.getSubject(token);
+        boolean update = userService.update(Wrappers.<User>lambdaUpdate().eq(User::getId, userId).set(User::getNumber, user.getNumber()).set(User::getName, user.getName()));
+        LoginVo loginVo = userService.getUserInfo(userId);
+        return update ? Result.success(loginVo) : Result.error("修改失败");
+    }
+
+    /**
+     * 密码修改
+     * @param request
+     * @param map
+     * @return
+     */
+    @PutMapping("updatePassword")
+    public Result updatePassword(HttpServletRequest request, @RequestBody Map<String, String> map) {
+        String token = request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length());
+        Long userId = JwtUtil.getSubject(token);
+        User user = userService.getById(userId);
+        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+        if (!bCryptPasswordEncoder.matches(map.get("priPassword"), user.getPassword())) {
+            return Result.error("原密码错误！");
+        }
+        String password = map.get("password");
+        if (password == null || password.trim().equals("")) {
+            return Result.error("请输入新密码");
+        }
+        boolean update = userService.update(Wrappers.<User>lambdaUpdate().eq(User::getId, userId).set(User::getPassword, bCryptPasswordEncoder.encode(password)));
+        return update ? Result.success() : Result.error();
     }
 }

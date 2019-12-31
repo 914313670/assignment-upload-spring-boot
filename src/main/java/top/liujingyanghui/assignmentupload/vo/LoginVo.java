@@ -28,6 +28,11 @@ public class LoginVo {
     private Integer schoolId;
 
     /**
+     * 班级ID
+     */
+    private Long classId;
+
+    /**
      * 邮箱
      */
     private String email;

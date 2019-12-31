@@ -228,7 +228,6 @@ public class ClassController {
      * @return
      */
     @GetMapping("getBySchool")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
     public Result getBySchool(@RequestParam int schoolId) {
         List<Class> list = classService.list(Wrappers.<Class>lambdaQuery().select(Class::getName, Class::getId).eq(Class::getSchoolId, schoolId));
         return Result.success(list);

@@ -12,7 +12,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import top.liujingyanghui.assignmentupload.dao.ClassMapper;
 import top.liujingyanghui.assignmentupload.dao.SchoolMapper;
@@ -21,11 +20,9 @@ import top.liujingyanghui.assignmentupload.entity.Class;
 import top.liujingyanghui.assignmentupload.entity.JwtUser;
 import top.liujingyanghui.assignmentupload.entity.School;
 import top.liujingyanghui.assignmentupload.entity.User;
-import top.liujingyanghui.assignmentupload.exception.MyException;
 import top.liujingyanghui.assignmentupload.service.UserService;
 import top.liujingyanghui.assignmentupload.utils.JwtUtil;
 import top.liujingyanghui.assignmentupload.vo.LoginVo;
-import top.liujingyanghui.assignmentupload.vo.ResultEnum;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -53,22 +50,6 @@ public class UserDetailsServiceImpl extends ServiceImpl<UserMapper, User> implem
             throw new UsernameNotFoundException("用户名不存在");
         }
         return new JwtUser(user, Collections.singleton(new SimpleGrantedAuthority(user.getRole())));
-    }
-
-    @Override
-    public LoginVo register(User user) {
-        Integer count = userMapper.selectCount(Wrappers.<User>lambdaQuery().eq(User::getEmail, user.getEmail()));
-        if (1 == count) {
-            throw new MyException(ResultEnum.USER_IS_EXIST);
-        }
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String priPassword = user.getPassword();
-        user.setPassword(encoder.encode(priPassword));
-        user.setRole("ROLE_ADMIN");
-        user.setCreateTime(LocalDateTime.now());
-        user.setLastLoginTime(LocalDateTime.now());
-        userMapper.insert(user);
-        return createLoginVo(user.getEmail());
     }
 
     @Override
@@ -103,6 +84,22 @@ public class UserDetailsServiceImpl extends ServiceImpl<UserMapper, User> implem
             loginVo.setClassName(clazz.getName());
         }
         userMapper.update(null, Wrappers.<User>lambdaUpdate().eq(User::getId, jwtUser.getId()).set(User::getLastLoginTime, LocalDateTime.now()));
+        return loginVo;
+    }
+
+    @Override
+    public LoginVo getUserInfo(long id) {
+        User user1 = userMapper.selectById(id);
+        LoginVo loginVo = new LoginVo();
+        BeanUtils.copyProperties(user1, loginVo);
+        if (user1.getClassId() != null) {
+            Class clazz = classMapper.selectById(user1.getClassId());
+            loginVo.setClassName(clazz.getName());
+        }
+        if (user1.getSchoolId()!=null){
+            School school = schoolMapper.selectById(user1.getSchoolId());
+            loginVo.setSchoolName(school.getName());
+        }
         return loginVo;
     }
 }
