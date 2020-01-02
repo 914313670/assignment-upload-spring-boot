@@ -20,17 +20,17 @@ public class FilePackageUtil {
     private UrlConfig urlConfig;
 
     //文件打包下载
-    public HttpServletResponse downLoadFiles(String path,String zipName, HttpServletResponse response) throws Exception {
+    public HttpServletResponse downLoadFiles(String path, String zipName, HttpServletResponse response) throws Exception {
         try {
             /**这个集合就是你想要打包的所有文件，
              * 这里假设已经准备好了所要打包的文件*/
             //List<File> files = new ArrayList<File>();
-            File baseFile = new File(urlConfig.getUploadBaseUrl()+path);
+            File baseFile = new File(urlConfig.getUploadBaseUrl() + path);
             File[] files = baseFile.listFiles();
             /**创建一个临时压缩文件，
              * 我们会把文件流全部注入到这个文件中
              * 这里的文件你可以自定义是.rar还是.zip*/
-            File file = new File(urlConfig.getUploadBaseUrl() + "temp/"+zipName);
+            File file = new File(urlConfig.getUploadBaseUrl() + "temp/" + zipName);
             if (!file.getParentFile().exists()) {
                 file.getParentFile().mkdirs();
             }
@@ -84,7 +84,7 @@ public class FilePackageUtil {
             OutputStream toClient = new BufferedOutputStream(response.getOutputStream());
             response.setContentType("application/octet-stream");
 
-//如果输出的是中文名的文件，在此处就要用URLEncoder.encode方法进行处理
+            //如果输出的是中文名的文件，在此处就要用URLEncoder.encode方法进行处理
             response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(file.getName(), "UTF-8"));
             toClient.write(buffer);
             toClient.flush();
