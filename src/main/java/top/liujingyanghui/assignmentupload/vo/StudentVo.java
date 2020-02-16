@@ -33,6 +33,11 @@ public class StudentVo {
     private String className;
 
     /**
+     * 班级创建人ID
+     */
+    private Long classCreateId;
+
+    /**
      * 班级创建人
      */
     private String classCreateName;

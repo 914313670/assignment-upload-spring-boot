@@ -47,7 +47,6 @@ public class SchoolController {
             return Result.error(ResultEnum.SCHOOL_IS_EXIST);
         }
         school.setDelFlag(0);
-        school.setVerifyFlag(1);
         return schoolService.save(school) ? Result.success() : Result.error("添加失败");
     }
 
@@ -59,7 +58,7 @@ public class SchoolController {
     @GetMapping("list")
     public Result list() {
         return Result.success(schoolService.list(Wrappers.<School>lambdaQuery().select(School::getId, School::getName,
-                School::getCityId).eq(School::getDelFlag, 0).eq(School::getVerifyFlag, 1)));
+                School::getCityId).eq(School::getDelFlag, 0)));
     }
 
     /**
@@ -79,7 +78,7 @@ public class SchoolController {
         IPage<School> page = null;
         if (-1 == provinceId && -1 == cityId) {
             // 省份全选
-            page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().eq(School::getDelFlag, 0).eq(School::getVerifyFlag, 1).like(School::getName, searchKey));
+            page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().eq(School::getDelFlag, 0).like(School::getName, searchKey));
         } else if (-1 == cityId) {
             List<City> cityList = cityService.list(Wrappers.<City>lambdaQuery().eq(City::getProvinceId, provinceId));
             if (cityList.size() == 0) {
@@ -87,10 +86,10 @@ public class SchoolController {
                 return Result.success(ResultEnum.SUCCESS);
             }
             Set<Integer> ids = cityList.stream().map(item -> item.getId()).collect(Collectors.toSet());
-            page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().in(School::getCityId, ids).eq(School::getDelFlag, 0).eq(School::getVerifyFlag, 1)
+            page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().in(School::getCityId, ids).eq(School::getDelFlag, 0)
                     .like(School::getName, searchKey));
         } else {
-            page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().eq(School::getCityId, cityId).eq(School::getDelFlag, 0).eq(School::getVerifyFlag, 1)
+            page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().eq(School::getCityId, cityId).eq(School::getDelFlag, 0)
                     .like(School::getName, searchKey));
         }
         return Result.success(page);

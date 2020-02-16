@@ -108,6 +108,7 @@ public class UserController {
                 }
                 studentVo.setClassName(clazz.getName());
                 studentVo.setClassCreateName(clazz.getUserName());
+                studentVo.setClassCreateId(clazz.getUserId());
                 studentVos.add(studentVo);
             }
         }
