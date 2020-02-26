@@ -81,14 +81,8 @@ public class UserController {
     public Result studentPage(@RequestParam int schoolId, @RequestParam int classId, @RequestParam String email, @RequestParam String number, @RequestParam String name,
                               @RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size) {
         Page<User> userPage = new Page<>(current, size);
-        IPage<User> page;
-        if (-1 == classId) {
-            page = userService.page(userPage, Wrappers.<User>lambdaQuery().select(User::getId, User::getEmail, User::getName, User::getNumber, User::getClassId, User::getCreateTime, User::getLastLoginTime)
-                    .eq(User::getRole, "ROLE_STUDENT").eq(User::getSchoolId, schoolId).like(User::getEmail, email).like(User::getNumber, number).like(User::getName, name));
-        } else {
-            page = userService.page(userPage, Wrappers.<User>lambdaQuery().select(User::getId, User::getEmail, User::getName, User::getNumber, User::getClassId, User::getCreateTime, User::getLastLoginTime)
-                    .eq(User::getRole, "ROLE_STUDENT").eq(User::getSchoolId, schoolId).eq(User::getClassId, classId).like(User::getEmail, email).like(User::getNumber, number).like(User::getName, name));
-        }
+        IPage<User> page = userService.page(userPage, Wrappers.<User>lambdaQuery().select(User::getId, User::getEmail, User::getName, User::getNumber, User::getClassId, User::getCreateTime, User::getLastLoginTime)
+                .eq(User::getRole, "ROLE_STUDENT").eq(User::getSchoolId, schoolId).eq(-1 != classId, User::getClassId, classId).like(User::getEmail, email).like(User::getNumber, number).like(User::getName, name));
         PageVo<StudentVo> pageVo = new PageVo<>();
         pageVo.setTotal(page.getTotal());
         pageVo.setSize(page.getSize());
@@ -110,6 +104,10 @@ public class UserController {
                 studentVo.setClassCreateName(clazz.getUserName());
                 studentVo.setClassCreateId(clazz.getUserId());
                 studentVos.add(studentVo);
+            } else {
+                studentVo.setClassName("无");
+                studentVo.setClassCreateName("无");
+                studentVos.add(studentVo);
             }
         }
         pageVo.setRecords(studentVos);
@@ -125,6 +123,11 @@ public class UserController {
     @PutMapping("teacherUpdate")
     @PreAuthorize("hasRole('ADMIN')")
     public Result update(@RequestBody User user) {
+        User user1 = userService.getById(user.getId());
+        User user2 = userService.getOne(Wrappers.<User>lambdaQuery().eq(User::getRole, user1.getRole()).eq(User::getSchoolId, user.getSchoolId()).eq(User::getNumber, user.getNumber()).ne(User::getId, user.getId()));
+        if (user2 != null) {
+            return Result.error(user1.getRole().equals("ROLE_STUDENT") ? "学号已存在" : "工号已存在");
+        }
         boolean update = userService.update(Wrappers.<User>lambdaUpdate().eq(User::getId, user.getId()).set(User::getName, user.getName()).set(User::getNumber, user.getNumber())
                 .set(User::getSchoolId, user.getSchoolId()));
         return update ? Result.success() : Result.error("修改失败");
@@ -187,6 +190,7 @@ public class UserController {
 
     /**
      * 密码修改
+     *
      * @param request
      * @param map
      * @return

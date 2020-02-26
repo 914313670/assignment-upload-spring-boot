@@ -75,14 +75,13 @@ public class SchoolController {
     public Result page(@RequestParam int provinceId, @RequestParam int cityId, @RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size,
                        @RequestParam String searchKey) {
         Page<School> schoolPage = new Page<>(current, size);
-        IPage<School> page = null;
+        IPage<School> page;
         if (-1 == provinceId && -1 == cityId) {
             // 省份全选
             page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().eq(School::getDelFlag, 0).like(School::getName, searchKey));
         } else if (-1 == cityId) {
             List<City> cityList = cityService.list(Wrappers.<City>lambdaQuery().eq(City::getProvinceId, provinceId));
             if (cityList.size() == 0) {
-//                return Result.error("没有发现学校");
                 return Result.success(ResultEnum.SUCCESS);
             }
             Set<Integer> ids = cityList.stream().map(item -> item.getId()).collect(Collectors.toSet());

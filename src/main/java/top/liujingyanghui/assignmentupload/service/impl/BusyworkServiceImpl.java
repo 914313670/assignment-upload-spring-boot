@@ -35,6 +35,7 @@ public class BusyworkServiceImpl extends ServiceImpl<BusyworkMapper, Busywork> i
             throw new MyException(ResultEnum.ERROR);
         }
         Course course = courseMapper.selectById(busywork.getCourseId());
+
         int update = courseMapper.update(null, Wrappers.<Course>lambdaUpdate().eq(Course::getId, course.getId()).set(Course::getBusyworkNum,
                 course.getBusyworkNum() + 1));
         if (update<1){
