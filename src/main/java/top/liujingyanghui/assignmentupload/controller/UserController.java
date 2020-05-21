@@ -57,11 +57,14 @@ public class UserController {
      */
     @GetMapping("teacherPage")
     @PreAuthorize("hasRole('ADMIN')")
-    public Result teacherPage(@RequestParam int schoolId, @RequestParam String email, @RequestParam String number, @RequestParam String name, @RequestParam(defaultValue = "1") int current,
+    public Result teacherPage(@RequestParam int schoolId, @RequestParam String email, @RequestParam String number,
+                              @RequestParam String name, @RequestParam(defaultValue = "1") int current,
                               @RequestParam(defaultValue = "10") int size) {
         Page<User> userPage = new Page<>(current, size);
-        IPage<User> page = userService.page(userPage, Wrappers.<User>lambdaQuery().select(User::getId, User::getEmail, User::getName, User::getNumber, User::getCreateTime, User::getLastLoginTime)
-                .eq(User::getRole, "ROLE_TEACHER").eq(User::getSchoolId, schoolId).like(User::getEmail, email).like(User::getNumber, number).like(User::getName, name));
+        IPage<User> page = userService.page(userPage, Wrappers.<User>lambdaQuery().select(User::getId, User::getEmail,
+                User::getName, User::getNumber, User::getCreateTime, User::getLastLoginTime)
+                .eq(User::getRole, "ROLE_TEACHER").eq(User::getSchoolId, schoolId).like(User::getEmail, email).
+                        like(User::getNumber, number).like(User::getName, name));
         return Result.success(page);
     }
 
@@ -81,8 +84,9 @@ public class UserController {
     public Result studentPage(@RequestParam int schoolId, @RequestParam int classId, @RequestParam String email, @RequestParam String number, @RequestParam String name,
                               @RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size) {
         Page<User> userPage = new Page<>(current, size);
-        IPage<User> page = userService.page(userPage, Wrappers.<User>lambdaQuery().select(User::getId, User::getEmail, User::getName, User::getNumber, User::getClassId, User::getCreateTime, User::getLastLoginTime)
-                .eq(User::getRole, "ROLE_STUDENT").eq(User::getSchoolId, schoolId).eq(-1 != classId, User::getClassId, classId).like(User::getEmail, email).like(User::getNumber, number).like(User::getName, name));
+        IPage<User> page = userService.page(userPage, Wrappers.<User>lambdaQuery().select(User::getId, User::getEmail, User::getName, User::getNumber, User::getClassId,
+                User::getCreateTime, User::getLastLoginTime).eq(User::getRole, "ROLE_STUDENT").eq(User::getSchoolId, schoolId).eq(-1 != classId,
+                User::getClassId, classId).like(User::getEmail, email).like(User::getNumber, number).like(User::getName, name));
         PageVo<StudentVo> pageVo = new PageVo<>();
         pageVo.setTotal(page.getTotal());
         pageVo.setSize(page.getSize());

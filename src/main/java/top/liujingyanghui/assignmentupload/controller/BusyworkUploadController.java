@@ -57,6 +57,7 @@ public class BusyworkUploadController {
     @PreAuthorize("hasRole('STUDENT')")
     public Result add(HttpServletRequest request, @RequestParam("file") MultipartFile file, @RequestParam long busyworkId) {
         if (file.isEmpty()) {
+            System.out.println("1");
             return Result.error("上传失败");
         }
         String token = request.getHeader(tokenConfig.getTokenHeader()).substring(tokenConfig.getTokenHead().length());

@@ -72,23 +72,26 @@ public class SchoolController {
      */
     @GetMapping("page")
     @PreAuthorize("hasRole('ADMIN')")
-    public Result page(@RequestParam int provinceId, @RequestParam int cityId, @RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size,
-                       @RequestParam String searchKey) {
+    public Result page(@RequestParam int provinceId, @RequestParam int cityId, @RequestParam(defaultValue = "1") int current,
+                       @RequestParam(defaultValue = "10") int size, @RequestParam String searchKey) {
         Page<School> schoolPage = new Page<>(current, size);
         IPage<School> page;
         if (-1 == provinceId && -1 == cityId) {
             // 省份全选
-            page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().eq(School::getDelFlag, 0).like(School::getName, searchKey));
+            page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().eq(School::getDelFlag, 0).
+                    like(School::getName, searchKey));
         } else if (-1 == cityId) {
             List<City> cityList = cityService.list(Wrappers.<City>lambdaQuery().eq(City::getProvinceId, provinceId));
             if (cityList.size() == 0) {
                 return Result.success(ResultEnum.SUCCESS);
             }
             Set<Integer> ids = cityList.stream().map(item -> item.getId()).collect(Collectors.toSet());
-            page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().in(School::getCityId, ids).eq(School::getDelFlag, 0)
+            page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().in(School::getCityId, ids).
+                    eq(School::getDelFlag, 0)
                     .like(School::getName, searchKey));
         } else {
-            page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().eq(School::getCityId, cityId).eq(School::getDelFlag, 0)
+            page = schoolService.page(schoolPage, Wrappers.<School>lambdaQuery().eq(School::getCityId, cityId).
+                    eq(School::getDelFlag, 0)
                     .like(School::getName, searchKey));
         }
         return Result.success(page);

@@ -46,7 +46,8 @@ public class AuthController {
         if (one != null) {
             return Result.error("该邮箱已注册！");
         }
-        User one1 = userService.getOne(Wrappers.<User>lambdaQuery().eq(User::getNumber, user.getNumber()).eq(User::getSchoolId, user.getSchoolId()));
+        User one1 = userService.getOne(Wrappers.<User>lambdaQuery().eq(User::getNumber, user.getNumber()).eq(User::getSchoolId,
+                user.getSchoolId()));
         if (one1 != null) {
             return user.getRole().equals("1") ? Result.error("该学校下此工号已经注册！") : Result.error("该学校下此学号已经注册！");
         }
@@ -59,8 +60,8 @@ public class AuthController {
         boolean save = userService.save(user);
         String emailCodeUrl = urlConfig.getWebBaseUrl() + "active/" + user.getId() + "/" + code;
         String emailContent = "恭喜你注册成功，请点击下面链接进行激活！<br/><a href='" + emailCodeUrl + "'>" + emailCodeUrl +
-                "</a><br/>如果点击没有反应请自行复制链接在浏览器打开！<br/>高校作业上传系统：<a href='" + urlConfig.getWebBaseUrl() + "'>" + urlConfig.getWebBaseUrl() +
-                "</a>";
+                "</a><br/>如果点击没有反应请自行复制链接在浏览器打开！<br/>高校作业上传系统：<a href='" + urlConfig.getWebBaseUrl() +
+                "'>" + urlConfig.getWebBaseUrl() + "</a>";
         emailService.sendHtmlEmail(user.getEmail(), "用户激活 - 高校作业上传系统", emailContent);
         return save ? Result.success() : Result.error();
     }
